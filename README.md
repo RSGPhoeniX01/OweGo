@@ -1,2 +1,3 @@
 # Splittrr
-A free money splitter among groups &amp; friends with a lot of features
+A free money splitting web among groups &amp; friends with self expense tracker and a lot of features
+
