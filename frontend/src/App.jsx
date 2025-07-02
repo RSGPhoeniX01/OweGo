@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import Dashboard from './components/Dashboard'
 import Login from './components/Login'
-import SignUp from './components/SignUp'
+import SignUp from './components/SignUp' 
 import Profile from './components/Profile'
 
 function App() {
