@@ -30,3 +30,29 @@ export const verifyGroupMember = async (req, res, next) => {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+
+export const verifyGroupCreator = async (req, res, next) => {
+  try {
+    const groupId = req.params.groupId;
+    const userId = req.user.userId;
+
+    if (!groupId) {
+      return res.status(400).json({ success: false, message: 'Group ID is required' });
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    if (group.creator.toString() !== userId) {
+      return res.status(403).json({ success: false, message: 'Only the group creator can perform this action' });
+    }
+
+    req.groupId = groupId;
+    next();
+  } catch (error) {
+    console.error('Group creator middleware error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
