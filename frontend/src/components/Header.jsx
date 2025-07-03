@@ -1,6 +1,5 @@
 import {Link,NavLink} from 'react-router-dom'
-// when we use a tag then whole page reload again that why we use Link
-// link and NavLink almost similar but NavLink have some additional feature
+
 import logo from '../assets/logo.svg';
 export default function Header() {
     return (
