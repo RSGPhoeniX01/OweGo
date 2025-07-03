@@ -28,17 +28,8 @@ export const createGroup = async (req, res) => {
 // Add members to a group (only creator can add)
 export const addMembers = async (req, res) => {
   try {
-    const groupId = req.params.groupId;
+    const groupId = req.groupId;
     const { members } = req.body;
-    const userId = req.user.userId;
-
-    const group = await Group.findById(groupId);
-    if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
-
-    // Only creator can add members
-    if (group.creator.toString() !== userId) {
-      return res.status(403).json({ success: false, message: 'Only the group creator can add members' });
-    }
 
     // Validate all member IDs
     const users = await User.find({ _id: { $in: members } });
@@ -46,8 +37,15 @@ export const addMembers = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Some members do not exist' });
     }
 
-    // Add new members (avoid duplicates)
-    group.members = Array.from(new Set([...group.members.map(id => id.toString()), ...members]));
+    const group = await Group.findById(groupId);
+    const currentMemberIds = group.members.map(id => id.toString());
+    const alreadyAdded = members.filter(id => currentMemberIds.includes(id));
+    if (alreadyAdded.length > 0) {
+      return res.status(400).json({ success: false, message: `User(s) already added: ${alreadyAdded.join(', ')}` });
+    }
+
+    // Add new members
+    group.members = Array.from(new Set([...currentMemberIds, ...members]));
     await group.save();
     res.status(200).json({ success: true, message: 'Members added', group });
   } catch (error) {
@@ -59,11 +57,10 @@ export const addMembers = async (req, res) => {
 // Get group details
 export const groupDetails = async (req, res) => {
   try {
-    const {groupId}  = req.params;
+    const groupId = req.groupId;
     const group = await Group.findById(groupId)
       .populate('creator', 'username email')
       .populate('members', 'username email');
-    if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
     res.status(200).json({ success: true, group });
   } catch (error) {
     console.error('Group details error:', error);
@@ -73,19 +70,8 @@ export const groupDetails = async (req, res) => {
 
 export const deleteGroup = async (req, res) => {
   try {
-    const groupId = req.params.groupId;
-    const userId = req.user.userId;
-
+    const groupId = req.groupId;
     const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ success: false, message: 'Group not found' });
-    }
-
-    // Only creator can delete
-    if (group.creator.toString() !== userId) {
-      return res.status(403).json({ success: false, message: 'Only the group creator can delete the group' });
-    }
-
     await group.deleteOne();
     res.status(200).json({ success: true, message: 'Group deleted successfully' });
   } catch (error) {
@@ -96,23 +82,11 @@ export const deleteGroup = async (req, res) => {
 
 export const editGroup = async (req, res) => {
   try {
-    const groupId = req.params.groupId;
+    const groupId = req.groupId;
     const { name, description } = req.body;
-    const userId = req.user.userId;
-
     const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ success: false, message: 'Group not found' });
-    }
-
-    // Only creator can edit
-    if (group.creator.toString() !== userId) {
-      return res.status(403).json({ success: false, message: 'Only the group creator can edit the group' });
-    }
-
     if (name) group.name = name;
     if (description) group.description = description;
-
     await group.save();
     res.status(200).json({ success: true, message: 'Group updated successfully', group });
   } catch (error) {
@@ -123,44 +97,31 @@ export const editGroup = async (req, res) => {
 
 export const removeMembers = async (req, res) => {
   try {
-    const groupId = req.params.groupId;
+    const groupId = req.groupId;
     const { members } = req.body;
-    const userId = req.user.userId;
-
-    if (!groupId || !Array.isArray(members) || members.length === 0) {
-      return res.status(400).json({ success: false, message: 'groupId and members array are required' });
+    if (!Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ success: false, message: 'members array is required' });
     }
-
     const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ success: false, message: 'Group not found' });
-    }
-
-    // Only creator can remove members
-    if (group.creator.toString() !== userId) {
-      return res.status(403).json({ success: false, message: 'Only the group creator can remove members' });
-    }
-
     // Prevent removing the creator
+    if (members.includes(group.creator.toString())) {
+      return res.status(400).json({ success: false, message: 'Cannot remove the group creator/admin' });
+    }
     const membersToRemove = members.filter(id => id !== group.creator.toString());
-
     // Check if all members exist in the group
     const allMembersExist = membersToRemove.every(id => 
       group.members.some(memberId => memberId.toString() === id)
     );
-    
     if (!allMembersExist) {
       return res.status(400).json({ 
         success: false, 
         message: 'Members do not exist in the group'
       });
     }
-
     // Remove members
     group.members = group.members.filter(
       memberId => !membersToRemove.includes(memberId.toString())
     );
-
     await group.save();
     res.status(200).json({ 
       success: true, 
