@@ -134,3 +134,17 @@ export const removeMembers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+
+// Get all groups where the user is a member
+export const allGroups = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const groups = await Group.find({ members: userId })
+      .populate('creator', 'username email')
+      .populate('members', 'username email');
+    res.status(200).json({ success: true, groups });
+  } catch (error) {
+    console.error('All groups fetch error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
