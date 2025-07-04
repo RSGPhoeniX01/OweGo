@@ -28,23 +28,27 @@ const expenseSchema = new mongoose.Schema({
     trim: true,
     maxlength: 200
   },
-  date: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  time: {
-    type: String,
-    required: true,
-    default: () => new Date().toLocaleTimeString()
-  }
+  splits: [
+    {
+      member: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      share: {
+        type: Number,
+        required: true,
+        min: 0
+      }
+    }
+  ]
 }, {
   timestamps: true
 });
 
 // Index for efficient queries
-expenseSchema.index({ user: 1, group: 1, date: -1 });
-expenseSchema.index({ group: 1, date: -1 });
+expenseSchema.index({ user: 1, group: 1 });
+expenseSchema.index({ group: 1 });
 
 const Expense = mongoose.model('Expense', expenseSchema);
 
