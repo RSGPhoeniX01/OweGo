@@ -22,11 +22,11 @@ function Home() {
           Simplifying shared expenses for you and your friends.
         </p>
 
-        {msg && (
+        {/* {msg && (
           <div className="mt-6 text-md font-medium text-green-600 bg-green-50 border border-green-200 p-3 rounded-md">
             {msg}
           </div>
-        )}
+        )} */}
       </section>
 
       
