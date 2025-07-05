@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import ExpenseDetails from './ExpenseDetails';
 
 function GroupDetails() {
   const navigate = useNavigate();
@@ -8,6 +9,8 @@ function GroupDetails() {
   const [groups, setGroups] = useState([]);
   const [members, setMembers] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -53,6 +56,7 @@ function GroupDetails() {
       .then((res) => {
         const data = res.data;
         if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
+        console.log('Expenses data:', data.expenses); // Temporary debug log
         setExpenses(data.expenses);
       })
       .catch((err) => {
@@ -69,6 +73,16 @@ function GroupDetails() {
       setMembers(group.members);
       fetchExpenses(group.id);
     }
+  };
+
+  const handleExpenseClick = (expense) => {
+    setSelectedExpense(expense);
+    setIsExpenseModalOpen(true);
+  };
+
+  const handleCloseExpenseModal = () => {
+    setIsExpenseModalOpen(false);
+    setSelectedExpense(null);
   };
 
   return (
@@ -153,14 +167,18 @@ function GroupDetails() {
 
             
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
+              <h2 className="text-xl font-semibold mb-4">Group Expenses</h2>
               <div className="space-y-3">
                 {expenses.map((expense) => (
-                  <div key={expense.id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
+                  <div 
+                    key={expense._id} 
+                    className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => handleExpenseClick(expense)}
+                  >
                     <div className="flex-1">
                       <h3 className="font-medium">{expense.description}</h3>
                       <p className="text-sm text-gray-600">
-                        Paid by {expense.paidBy} • {expense.date}
+                        Paid by {expense.user?.username || 'Unknown'} • {new Date(expense.updatedAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="text-right">
@@ -175,6 +193,13 @@ function GroupDetails() {
           </div>
         </div>
       </div>
+
+      {/* Expense Details Modal */}
+      <ExpenseDetails
+        expense={selectedExpense}
+        isOpen={isExpenseModalOpen}
+        onClose={handleCloseExpenseModal}
+      />
     </div>
   );
 }
