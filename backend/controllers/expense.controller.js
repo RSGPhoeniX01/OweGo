@@ -112,12 +112,7 @@ export const getExpense = async (req, res) => {
 export const getAllExpense = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const expenses = await Expense.find({
-      $or: [
-        { user: userId },
-        { 'splits.member': userId }
-      ]
-    })
+    const expenses = await Expense.find({ user: userId })
       .populate('user', 'username email')
       .populate('splits.member', 'username email')
       .sort({ createdAt: -1 }); // Use createdAt instead of date

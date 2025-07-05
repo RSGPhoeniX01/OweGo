@@ -93,10 +93,12 @@ function GroupDetails() {
           <div className="p-4 border-b">
             <button 
               onClick={() => navigate('/dashboard')}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              ← Back to Groups
-            </button>
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+              >
+              
+              Back to Dashboard
+              </button>
+
           </div>
           
           <div className="p-4">
