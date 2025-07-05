@@ -7,6 +7,7 @@ import SignUp from './components/SignUp'
 import Profile from './components/Profile'
 import HowItWork from './components/HowItWork'
 import Features from './components/Features'
+import GroupDetails from './components/GroupDetails'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/howItWork" element={<HowItWork/>} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/groupdetails" element={<GroupDetails/>}/>
       </Routes>
     </div>
   )

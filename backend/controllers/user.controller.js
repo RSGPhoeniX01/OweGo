@@ -32,7 +32,7 @@ const validatePassword = (password) => {
 // Generate JWT Token
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'secreyt_key', {
-    expiresIn: '3s'
+    expiresIn: '30d'
   });
 };
 

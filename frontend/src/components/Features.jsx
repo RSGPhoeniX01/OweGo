@@ -15,7 +15,7 @@ export default function Features() {
         .catch(() => {
           localStorage.removeItem('token');
           alert('Session expired. Please log in again.');
-          setTimeout(() => navigate('/login'), 1000);
+          navigate('/login')
         });
     }
   }, [navigate]);
