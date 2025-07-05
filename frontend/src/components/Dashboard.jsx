@@ -95,49 +95,50 @@ function Dashboard() {
         </header>
 
         {/* Page Content */}
-        <section className="flex-1 p-6 bg-white overflow-auto">
-          <div className="border border-gray-300 rounded-xl p-6 h-full flex flex-col gap-6">
-            <div className="border border-gray-300 rounded-xl p-4 w-full">
-              <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
-              {recentTrips.length === 0 ? (
-                <p className="text-gray-500">No recent trips found.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {recentTrips.map((trip) => (
-                    <li key={trip._id} className="border p-2 rounded hover:bg-gray-50">
-                      <div className="font-medium">{trip.name}</div>
-                      <div className="text-sm text-gray-600">{trip.description || 'No description'}</div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div className="border border-gray-300 rounded-xl p-4 w-full">
-              <h3 className="font-bold mb-2 text-lg">Recent Expenses</h3>
-              {recentExpenses.length === 0 ? (
-                <p className="text-gray-500">No recent expenses found.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {recentExpenses.map((expense) => (
-                    <li key={expense._id} className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50">
-                      <div className="flex-1">
-                        <h3 className="font-medium">{expense.description}</h3>
-                        <p className="text-sm text-gray-600">
-                          Paid by {expense.user?.username || 'Unknown'} • {new Date(expense.updatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-lg font-semibold text-green-600">
-                          ₹{expense.amount}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </section>
+        <section className="flex-1 p-6 bg-white overflow-auto flex justify-center">
+  <div className="w-full max-w-4xl space-y-6">
+    <div className="border border-gray-300 rounded-xl p-4">
+      <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
+      {recentTrips.length === 0 ? (
+        <p className="text-gray-500">No recent trips found.</p>
+      ) : (
+        <ul className="space-y-2">
+          {recentTrips.map((trip) => (
+            <li key={trip._id} className="border p-4 rounded hover:bg-gray-50">
+              <div className="font-medium">{trip.name}</div>
+              <div className="text-sm text-gray-600">{trip.description || 'No description'}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div className="border border-gray-300 rounded-xl p-4">
+      <h3 className="font-bold mb-2 text-lg">Recent Expenses</h3>
+      {recentExpenses.length === 0 ? (
+        <p className="text-gray-500">No recent expenses found.</p>
+      ) : (
+        <ul className="space-y-2">
+          {recentExpenses.map((expense) => (
+            <li key={expense._id} className="flex justify-between items-center p-4 border rounded hover:bg-gray-50">
+              <div className="flex-1">
+                <h3 className="font-medium">{expense.description}</h3>
+                <p className="text-sm text-gray-600">
+                  Paid by {expense.user?.username || 'Unknown'} • {new Date(expense.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-semibold text-green-600">
+                  ₹{expense.amount}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</section>
       </main>
     </div>
   );
