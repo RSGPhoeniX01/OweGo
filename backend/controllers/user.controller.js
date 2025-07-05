@@ -322,3 +322,42 @@ export const updateUser = async (req, res) => {
     });
   }
 };
+
+// Search Users Controller
+export const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query must be at least 2 characters long'
+      });
+    }
+
+    const searchQuery = q.trim();
+    
+    // Search by username or email (case-insensitive)
+    const users = await User.find({
+      $or: [
+        { username: { $regex: searchQuery, $options: 'i' } },
+        { email: { $regex: searchQuery, $options: 'i' } }
+      ]
+    })
+    .select('username email _id')
+    .limit(10); // Limit results to 10 users
+
+    res.status(200).json({
+      success: true,
+      users: users
+    });
+
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};

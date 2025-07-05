@@ -11,6 +11,10 @@ function GroupDetails() {
   const [expenses, setExpenses] = useState([]);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -85,6 +89,81 @@ function GroupDetails() {
     setSelectedExpense(null);
   };
 
+  // --- User Search and Add Member Logic ---
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      console.log('Searching for:', query);
+      const res = await api.get(`/user/search?q=${encodeURIComponent(query)}`);
+      console.log('Search response:', res.data);
+      if (res.data.success) {
+        // Filter out users who are already in the group
+        const filteredUsers = res.data.users.filter(user => !members.includes(user.username));
+        console.log('Filtered users:', filteredUsers);
+        setSearchResults(filteredUsers);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    }
+    setIsSearching(false);
+  };
+
+
+
+  const handleUserSelect = (user) => {
+    setSelectedUsers(prev => {
+      const isSelected = prev.find(u => u._id === user._id);
+      if (isSelected) {
+        return prev.filter(u => u._id !== user._id);
+      } else {
+        return [...prev, user];
+      }
+    });
+  };
+
+  const handleAddSelectedUsers = async () => {
+    if (selectedUsers.length === 0) return;
+    
+    const group = groups.find(g => g.name === selectedGroup);
+    if (!group) return;
+
+    try {
+      // Get array of user IDs
+      const memberIds = selectedUsers.map(user => user._id);
+      
+      // Add all selected users at once using the correct endpoint
+      const res = await api.post(`/group/${group.id}/add-members`, { 
+        members: memberIds 
+      });
+      
+      if (res.data.success) {
+        // Add usernames to members list
+        const newUsernames = selectedUsers.map(user => user.username);
+        setMembers(prev => [...prev, ...newUsernames]);
+        
+        // Clear selected users after adding
+        setSelectedUsers([]);
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    } catch (err) {
+      console.error('Add members error:', err);
+      alert('Failed to add members. Please try again.');
+    }
+  };
+
+  const removeSelectedUser = (userId) => {
+    setSelectedUsers(prev => prev.filter(u => u._id !== userId));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
@@ -140,19 +219,86 @@ function GroupDetails() {
             
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-800">{selectedGroup}</h1>
-              <div className="space-x-3">
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                  Add Expense
-                </button>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Add Member
-                </button>
-              </div>
             </div>
 
             
             <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Members</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Members</h2>
+                <div className="flex items-center space-x-2">
+                  {/* Search Box */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => handleSearch(e.target.value)}
+                      placeholder="Search user..."
+                      className="p-2 border rounded text-sm w-40"
+                    />
+                    {searchQuery && searchResults.length > 0 && (
+                      <div className="absolute left-0 mt-1 w-56 bg-white border rounded shadow z-10 max-h-48 overflow-y-auto">
+                        {searchResults.map(user => {
+                          const isSelected = selectedUsers.find(u => u._id === user._id);
+                          return (
+                            <div 
+                              key={user._id} 
+                              className={`flex items-center justify-between px-2 py-1 hover:bg-gray-100 cursor-pointer ${
+                                isSelected ? 'bg-blue-50' : ''
+                              }`}
+                              onClick={() => handleUserSelect(user)}
+                            >
+                              <div>
+                                <span className="font-medium">{user.username}</span>
+                                <span className="text-xs text-gray-500 ml-2">{user.email}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {isSelected && (
+                                  <span className="text-blue-600 text-xs">✓</span>
+                                )}
+                                <span className="text-blue-600 text-xs font-semibold">
+                                  {isSelected ? 'Selected' : 'Click to select'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      selectedUsers.length > 0 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    onClick={handleAddSelectedUsers}
+                    disabled={selectedUsers.length === 0}
+                  >
+                    Add Selected ({selectedUsers.length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Selected Users */}
+              {selectedUsers.length > 0 && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                  <h3 className="font-medium text-blue-800 mb-2">Selected Users:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUsers.map(user => (
+                      <div key={user._id} className="flex items-center space-x-2 bg-white px-3 py-1 rounded-full border">
+                        <span className="text-sm font-medium">{user.username}</span>
+                        <button
+                          onClick={() => removeSelectedUser(user._id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {members.map((member, index) => (
                   <div key={index} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
@@ -167,7 +313,12 @@ function GroupDetails() {
 
             
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Group Expenses</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Group Expenses</h2>
+                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                  Add Expense
+                </button>
+              </div>
               <div className="space-y-3">
                 {expenses.map((expense) => (
                   <div 
