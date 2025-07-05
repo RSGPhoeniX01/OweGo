@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api'; 
 function SignUp() {
@@ -7,6 +7,20 @@ function SignUp() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Auto-redirect if logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.get('/user/profile')
+        .then(() => navigate('/dashboard'))
+        .catch(() => {
+          localStorage.removeItem('token');
+          alert('Session expired. Please log in again.');
+          setTimeout(() => navigate('/login'), 1000);
+        });
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

@@ -1,6 +1,25 @@
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../api';
 import Header from './Header';
 
 export default function Features() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Auto-redirect if logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.get('/user/profile')
+        .then(() => navigate('/dashboard'))
+        .catch(() => {
+          localStorage.removeItem('token');
+          alert('Session expired. Please log in again.');
+          setTimeout(() => navigate('/login'), 1000);
+        });
+    }
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-white">
       <Header />

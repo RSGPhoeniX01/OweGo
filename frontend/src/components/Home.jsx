@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api'
 import Header from './Header';
+import { useNavigate } from 'react-router-dom';
 function Home() {
   const [msg, setMsg] = useState('');
+  const navigate = useNavigate();
   useEffect(() => {
-    // fetch('http://localhost:5000/test')
-    api.get('/test')
-      // .then(response => response.json())
-      // .then(data => setMsg(data.message))
-      .then(response=>setMsg(response.data.message))
-      .catch(error => console.error('Error fetching message:', error));
-  }, []);
+    // Auto-redirect if logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.get('/user/profile')
+        .then(() => navigate('/dashboard'))
+        .catch(() => {
+          localStorage.removeItem('token');
+          alert('Session expired. Please log in again.');
+          setTimeout(() => navigate('/login'), 1000);
+        });
+    }
+  }, [navigate]);
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <Header />
@@ -21,15 +28,7 @@ function Home() {
         <p className="text-lg text-gray-600">
           Simplifying shared expenses for you and your friends.
         </p>
-
-        {/* {msg && (
-          <div className="mt-6 text-md font-medium text-green-600 bg-green-50 border border-green-200 p-3 rounded-md">
-            {msg}
-          </div>
-        )} */}
       </section>
-
-      
       <section className="bg-gray-50 py-12">
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 px-4">
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
