@@ -4,35 +4,71 @@ import api from '../api';
 
 function GroupDetails() {
   const navigate = useNavigate();
-  const [selectedGroup, setSelectedGroup] = useState('Group 1');
-  const [groups, setGroups] = useState(['Group 1', 'Group 2', 'Group 3']);
-  const [members, setMembers] = useState(['John', 'Alice', 'Bob', 'Sarah']);
-  const [expenses, setExpenses] = useState([
-    { id: 1, description: 'Dinner', amount: 120, paidBy: 'John', date: '2024-01-15' },
-    { id: 2, description: 'Movie tickets', amount: 80, paidBy: 'Alice', date: '2024-01-14' },
-    { id: 3, description: 'Gas', amount: 45, paidBy: 'Bob', date: '2024-01-13' }
-  ]);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [groups, setGroups] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [expenses, setExpenses] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       alert('Please log in to access group details.');
       navigate('/login');
       return;
     }
 
-    // Verify token
-    api.get('/user/profile')
-      .catch(() => {
-        localStorage.removeItem('token');
-        alert('Session expired. Please log in again.');
-        navigate('/login');
+    api.get('/user/profile').catch(() => {
+      localStorage.removeItem('token');
+      alert('Session expired. Please log in again.');
+      navigate('/login');
+    });
+
+    api.get('/group/allgroups')
+      .then((res) => {
+        const data = res.data;
+        if (!data.success) throw new Error(data.message || 'Failed to fetch groups');
+
+        const fetchedGroups = data.groups.map(group => ({
+          id: group._id,
+          name: group.name,
+          members: group.members.map(m => m.username),
+        }));
+        setGroups(fetchedGroups);
+
+        if (data.groups.length > 0) {
+          setSelectedGroup(data.groups[0].name);
+          setMembers(data.groups[0].members.map(m => m.username));
+          fetchExpenses(data.groups[0]._id);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching groups:', err);
+        alert('Could not load groups. Please try again later.');
       });
   }, [navigate]);
 
+  const fetchExpenses = (groupId) => {
+    api.get(`/expense/${groupId}/expenses`)
+      .then((res) => {
+        const data = res.data;
+        if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
+        setExpenses(data.expenses);
+      })
+      .catch((err) => {
+        console.error('Error fetching expenses:', err);
+        setExpenses([]);
+      });
+  };
+
   const handleGroupSelect = (groupName) => {
     setSelectedGroup(groupName);
+
+    const group = groups.find(g => g.name === groupName);
+    if (group) {
+      setMembers(group.members);
+      fetchExpenses(group.id);
+    }
   };
 
   return (
@@ -52,27 +88,42 @@ function GroupDetails() {
           <div className="p-4">
             <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
             <div className="space-y-2">
-              {groups.map((group, index) => (
+            {groups.length > 0 ? (
+              groups.map((group, index) => (
                 <button
                   key={index}
-                  onClick={() => handleGroupSelect(group)}
+                  onClick={() => handleGroupSelect(group.name)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedGroup === group 
+                    selectedGroup === group.name 
                       ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600' 
                       : 'hover:bg-gray-100'
                   }`}
                 >
-                  {group}
+                  {group.name}
                 </button>
-              ))}
-            </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm text-center mt-4">
+                You don’t have any groups yet. Create one to get started!
+              </div>
+            )}
+          </div>
+          <div className="mt-6">
+            <button
+              onClick={() => navigate('/creategroup')}
+              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+            >
+              + Create Group
+            </button>
+          </div>
+
           </div>
         </div>
 
-        {/* Right Pane - Group Details */}
+        
         <div className="flex-1 p-6">
           <div className="max-w-4xl mx-auto">
-            {/* Group Header */}
+            
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-800">{selectedGroup}</h1>
               <div className="space-x-3">
@@ -85,7 +136,7 @@ function GroupDetails() {
               </div>
             </div>
 
-            {/* Members Section */}
+            
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">Members</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -100,7 +151,7 @@ function GroupDetails() {
               </div>
             </div>
 
-            {/* Expenses Section */}
+            
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Recent Expenses</h2>
               <div className="space-y-3">
