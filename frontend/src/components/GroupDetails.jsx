@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
 import ExpenseDetails from './ExpenseDetails';
-
+import editIcon from '../assets/editsvg.svg';
 function GroupDetails() {
   const navigate = useNavigate();
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -168,9 +168,9 @@ function GroupDetails() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="flex h-screen mt-16">
+      <div className="flex h-screen ">
         {/* Left Pane - Groups */}
-        <div className="w-64 bg-white shadow-lg">
+        <div className="w-64 bg-white shadow-lg flex flex-col overflow-y-auto">
           <div className="p-4 border-b">
             <button 
               onClick={() => navigate('/dashboard')}
@@ -187,23 +187,40 @@ function GroupDetails() {
             <div className="space-y-2">
             {groups.length > 0 ? (
               groups.map((group, index) => (
-                <button
+                <div
                   key={index}
-                  onClick={() => handleGroupSelect(group.name)}
-                  className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedGroup === group.name 
-                      ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600' 
+                  className={`w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                    selectedGroup === group.name
+                      ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600'
                       : 'hover:bg-gray-100'
                   }`}
+                  onClick={() => handleGroupSelect(group.name)}
                 >
-                  {group.name}
-                </button>
+                  <span className="flex-1 truncate">{group.name}</span>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering group select
+                      // console.log(`Edit clicked for group: ${group.name}`);
+                      // **TO_DO: Open edit modal or redirect later 
+                    }}
+                    className="flex items-center justify-center p-1 rounded hover:bg-gray-200"
+                  >
+                    <img
+                      src={editIcon}
+                      alt="Edit"
+                      className="h-4 w-4 object-contain opacity-70 hover:opacity-100"
+                    />
+                  </button>
+                </div>
               ))
             ) : (
               <div className="text-gray-500 text-sm text-center mt-4">
                 You don’t have any groups yet. Create one to get started!
               </div>
             )}
+
           </div>
           <div className="mt-6">
             <button
@@ -218,8 +235,8 @@ function GroupDetails() {
         </div>
 
         
-        <div className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
+        <div className="flex-1 flex flex-col overflow-y-auto bg-gray-50">
+          <div className="p-6 max-w-4xl mx-auto">
             
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-800">{selectedGroup}</h1>
