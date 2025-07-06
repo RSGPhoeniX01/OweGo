@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import Header from './Header';
 
 function Profile() {
   const navigate = useNavigate();
@@ -97,7 +98,9 @@ function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4">
+      <Header />
+
+      <div className="max-w-4xl mx-auto py-8 px-4 mt-16">
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">

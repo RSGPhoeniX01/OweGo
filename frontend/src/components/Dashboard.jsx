@@ -1,7 +1,7 @@
 import React, { useEffect,useState  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import logo from "../assets/logo.svg";
+import Header from './Header';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 function Dashboard() {
@@ -45,12 +45,14 @@ function Dashboard() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
-    <div className="flex h-screen bg-white text-black transition-all duration-300 ease-in-out">
-    
+    <div className="flex h-screen bg-white text-black">
+      <Header />
+
+      {/* Sidebar - Below header */}
       <aside
-        className={`${
+        className={`fixed left-0 top-16 h-full ${
           sidebarOpen ? 'w-64' : 'w-12'
-        } bg-white border-r border-gray-200 p-2 flex flex-col transition-all duration-300 ease-in-out shadow-md relative`}
+        } bg-white border-r border-gray-200 p-2 flex flex-col transition-all duration-300 ease-in-out shadow-md`}
       >
         
         <button
@@ -85,17 +87,12 @@ function Dashboard() {
         )}
       </aside>
       
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/*Top header */}
-        <header className="flex justify-between items-center p-4 border-b">
-          <img src={logo} alt="Logo" className="h-8" />
-          <button className="border px-4 py-1 rounded font-medium">
-            Profile
-          </button>
-        </header>
-
+      {/* Main Content - Adjusted for header and sidebar */}
+      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+        sidebarOpen ? 'ml-64' : 'ml-12'
+      }`}>
         {/* Page Content */}
-        <section className="flex-1 p-6 bg-white overflow-auto flex justify-center">
+        <section className="flex-1 p-6 bg-white overflow-auto flex justify-center mt-16">
   <div className="w-full max-w-4xl space-y-6">
     <div className="border border-gray-300 rounded-xl p-4">
       <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>

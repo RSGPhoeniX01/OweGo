@@ -1,7 +1,49 @@
-import {Link,NavLink} from 'react-router-dom'
-
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.svg';
 export default function Header() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        alert('Logged out successfully!');
+        navigate('/login');
+    };
+
+    // Check if we're on a protected route (dashboard, profile, etc.)
+    const isProtectedRoute = ['/dashboard', '/profile', '/groupdetails', '/creategroup'].includes(location.pathname);
+
+    if (isProtectedRoute) {
+        return (
+            <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 border-b bg-white shadow-sm">
+                <img 
+                    src={logo} 
+                    alt="Logo" 
+                    className="h-8 cursor-pointer hover:opacity-80 transition-opacity" 
+                    onClick={() => navigate('/dashboard')}
+                />
+                <div className="flex items-center space-x-3">
+                    {location.pathname === '/profile' ? (
+                        <button 
+                            onClick={handleLogout}
+                            className="border px-4 py-1 rounded font-medium hover:bg-gray-50 transition-colors"
+                        >
+                            Logout
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => navigate('/profile')}
+                            className="border px-4 py-1 rounded font-medium hover:bg-gray-50 transition-colors"
+                        >
+                            Profile
+                        </button>
+                    )}
+                </div>
+            </header>
+        );
+    }
+
+    // Public header for non-protected routes
     return (
         <header className="shadow sticky z-50 top-0">
             <nav className="bg-white border-gray-200 px-4 lg:px-6 py-2.5">

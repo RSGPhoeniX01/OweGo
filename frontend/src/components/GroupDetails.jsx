@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import Header from './Header';
 import ExpenseDetails from './ExpenseDetails';
 
 function GroupDetails() {
@@ -166,7 +167,8 @@ function GroupDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen">
+      <Header />
+      <div className="flex h-screen mt-16">
         {/* Left Pane - Groups */}
         <div className="w-64 bg-white shadow-lg">
           <div className="p-4 border-b">
