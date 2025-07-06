@@ -4,26 +4,39 @@ import User from '../models/user.model.js';
 // Create a new group
 export const createGroup = async (req, res) => {
   try {
-    const { name, description, members = [] } = req.body;
-    const creator = req.user.userId;
+    const { name, description, members } = req.body;
 
-    // Ensure creator is in members
-    if (!members.includes(creator)) members.push(creator);
-
-    // Validate all member IDs
-    const users = await User.find({ _id: { $in: members } });
-    if (users.length !== members.length) {
-      return res.status(400).json({ success: false, message: 'Some members do not exist' });
+    if (!name || !members || !Array.isArray(members) || members.length === 0) {
+      return res.status(400).json({ success: false, message: 'Group name and members are required' });
     }
 
-    const group = new Group({ name, description, creator, members });
-    await group.save();
-    res.status(201).json({ success: true, message: 'Group created', group });
+    // Convert usernames to user IDs
+    const users = await User.find({ username: { $in: members } }, '_id username');
+    if (users.length !== members.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Some usernames were not found in the system'
+      });
+    }
+
+    const memberIds = users.map(user => user._id);
+
+    const newGroup = new Group({
+      name,
+      description,
+      members: memberIds,
+      creator: req.user.userId, //  add creator here
+    });
+
+    await newGroup.save();
+
+    res.status(201).json({ success: true, message: 'Group created', group: newGroup });
   } catch (error) {
     console.error('Create group error:', error);
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 };
+
 
 // Add members to a group (only creator can add)
 export const addMembers = async (req, res) => {
