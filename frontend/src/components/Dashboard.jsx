@@ -2,11 +2,13 @@ import React, { useEffect,useState  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
+import Groups from './Groups';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups'
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -69,12 +71,25 @@ function Dashboard() {
         {sidebarOpen && (
           <div className="mt-10 px-2">
             <nav className="space-y-4">
-              <button className="w-full text-left px-4 py-2 bg-green-600 text-white rounded font-semibold">
+              <button 
+                onClick={() => setActiveView('dashboard')}
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                  activeView === 'dashboard' 
+                    ? 'bg-green-600 text-white' 
+                    : 'border hover:bg-gray-50'
+                }`}
+              >
                 Home
               </button>
               <button
-              onClick={() => navigate('/groupdetails')} className="w-full text-left px-4 py-2 border rounded">
-              Groups
+                onClick={() => setActiveView('groups')} 
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                  activeView === 'groups' 
+                    ? 'bg-green-600 text-white' 
+                    : 'border hover:bg-gray-50'
+                }`}
+              >
+                Groups
               </button>
               <button className="w-full text-left px-4 py-2 border rounded">
                 Expenses
@@ -93,7 +108,8 @@ function Dashboard() {
       }`}>
         {/* Page Content */}
         <section className="flex-1 p-6 bg-white overflow-auto flex justify-center mt-16">
-  <div className="w-full max-w-4xl space-y-6">
+          {activeView === 'dashboard' ? (
+            <div className="w-full max-w-4xl space-y-6">
     <div className="border border-gray-300 rounded-xl p-4">
       <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
       {recentTrips.length === 0 ? (
@@ -134,8 +150,11 @@ function Dashboard() {
         </ul>
       )}
     </div>
-  </div>
-</section>
+            </div>
+          ) : (
+            <Groups />
+          )}
+        </section>
       </main>
     </div>
   );
