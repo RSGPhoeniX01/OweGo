@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
 import ExpenseDetails from './ExpenseDetails';
@@ -8,6 +8,8 @@ import editIcon from '../assets/editsvg.svg';
 
 function GroupDetails() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const routeGroupId = searchParams.get('groupId');
   const [selectedGroup, setSelectedGroup] = useState('');
   const [groups, setGroups] = useState([]);
   const [members, setMembers] = useState([]);
@@ -46,18 +48,24 @@ function GroupDetails() {
           members: group.members.map(m => m.username),
         }));
         setGroups(fetchedGroups);
-
-        if (data.groups.length > 0) {
-          setSelectedGroup(data.groups[0].name);
-          setMembers(data.groups[0].members.map(m => m.username));
-          fetchExpenses(data.groups[0]._id);
+        let initialGroup = null;
+        if (routeGroupId) {
+          initialGroup = data.groups.find(g => g._id === routeGroupId);
+        }
+        if (!initialGroup && data.groups.length > 0) {
+          initialGroup = data.groups[0];
+        }
+        if (initialGroup) {
+          setSelectedGroup(initialGroup.name);
+          setMembers(initialGroup.members.map(m => m.username));
+          fetchExpenses(initialGroup._id);
         }
       })
       .catch((err) => {
         console.error('Error fetching groups:', err);
         alert('Could not load groups. Please try again later.');
       });
-  }, [navigate]);
+  }, [navigate, routeGroupId]);
 
   const fetchExpenses = (groupId) => {
     api.get(`/expense/${groupId}/expenses`)
@@ -74,12 +82,12 @@ function GroupDetails() {
   };
 
   const handleGroupSelect = (groupName) => {
-    setSelectedGroup(groupName);
-
     const group = groups.find(g => g.name === groupName);
     if (group) {
+      setSelectedGroup(group.name);
       setMembers(group.members);
       fetchExpenses(group.id);
+      setSearchParams({ groupId: group.id });
     }
   };
 
@@ -119,8 +127,6 @@ function GroupDetails() {
     }
     setIsSearching(false);
   };
-
-
 
   const handleUserSelect = (user) => {
     setSelectedUsers(prev => {
@@ -235,7 +241,7 @@ function GroupDetails() {
               ))
             ) : (
               <div className="text-gray-500 text-sm text-center mt-4">
-                You don’t have any groups yet. Create one to get started!
+                You don't have any groups yet. Create one to get started!
               </div>
             )}
 
