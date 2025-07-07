@@ -95,7 +95,7 @@ export const deleteGroup = async (req, res) => {
 
 export const editGroup = async (req, res) => {
   try {
-    const groupId = req.groupId;
+    const groupId = req.params.groupId;
     const { name, description } = req.body;
     const group = await Group.findById(groupId);
     if (name) group.name = name;
