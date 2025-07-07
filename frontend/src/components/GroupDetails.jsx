@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
 import ExpenseDetails from './ExpenseDetails';
+import CreateExpense from './CreateExpense';
 import editIcon from '../assets/editsvg.svg';
+
 function GroupDetails() {
   const navigate = useNavigate();
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -16,6 +18,7 @@ function GroupDetails() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -163,6 +166,21 @@ function GroupDetails() {
 
   const removeSelectedUser = (userId) => {
     setSelectedUsers(prev => prev.filter(u => u._id !== userId));
+  };
+
+  const handleAddExpense = () => {
+    setIsCreateExpenseModalOpen(true);
+  };
+
+  const handleCloseCreateExpenseModal = () => {
+    setIsCreateExpenseModalOpen(false);
+  };
+
+  const handleExpenseCreated = () => {
+    const group = groups.find(g => g.name === selectedGroup);
+    if (group) {
+      fetchExpenses(group.id);
+    }
   };
 
   return (
@@ -336,7 +354,10 @@ function GroupDetails() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Group Expenses</h2>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                <button 
+                  onClick={handleAddExpense}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
                   Add Expense
                 </button>
               </div>
@@ -371,6 +392,14 @@ function GroupDetails() {
         expense={selectedExpense}
         isOpen={isExpenseModalOpen}
         onClose={handleCloseExpenseModal}
+      />
+
+      {/* Create Expense Modal */}
+      <CreateExpense
+        groupId={groups.find(g => g.name === selectedGroup)?.id}
+        isOpen={isCreateExpenseModalOpen}
+        onClose={handleCloseCreateExpenseModal}
+        onExpenseCreated={handleExpenseCreated}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
 import Groups from './Groups';
+import UserExpenses from './UserExpenses';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 function Dashboard() {
@@ -31,7 +32,9 @@ function Dashboard() {
     .then((res) => {
       const data = res.data;
       if (!data.success) throw new Error(data.message || 'Failed to fetch trips');
-      setRecentTrips(data.groups.slice(0, 3)); // show latest 3 trips
+      // Sort by createdAt descending, then take the first 3
+      const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setRecentTrips(sortedGroups.slice(0, 3)); // show latest 3 trips
     })
     .catch((err) => console.error('Error fetching trips:', err));
 
@@ -91,7 +94,14 @@ function Dashboard() {
               >
                 Groups
               </button>
-              <button className="w-full text-left px-4 py-2 border rounded">
+              <button
+                onClick={() => setActiveView('expenses')} 
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                  activeView === 'expenses' 
+                    ? 'bg-green-600 text-white' 
+                    : 'border hover:bg-gray-50'
+                }`}
+              >
                 Expenses
               </button>
               <button className="w-full text-left px-4 py-2 border rounded">
@@ -151,8 +161,10 @@ function Dashboard() {
       )}
     </div>
             </div>
-          ) : (
+          ) : activeView === 'groups' ? (
             <Groups />
+          ) : (
+            <UserExpenses />
           )}
         </section>
       </main>

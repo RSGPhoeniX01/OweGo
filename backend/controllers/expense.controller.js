@@ -108,14 +108,22 @@ export const getExpense = async (req, res) => {
   }
 };
 
-// Get all expenses for the logged-in user
+// Get all expenses for the logged-in user (from all groups where the user is a member)
 export const getAllExpense = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const expenses = await Expense.find({ user: userId })
+
+    // Find all groups where the user is a member
+    const Group = (await import('../models/group.model.js')).default;
+    const userGroups = await Group.find({ members: userId });
+    const groupIds = userGroups.map(group => group._id);
+
+    // Find all expenses from those groups
+    const expenses = await Expense.find({ group: { $in: groupIds } })
       .populate('user', 'username email')
+      .populate('group', 'name')
       .populate('splits.member', 'username email')
-      .sort({ createdAt: -1 }); // Use createdAt instead of date
+      .sort({ createdAt: -1 });
 
     let totalToPay = 0;
     let totalToReceive = 0;
@@ -123,6 +131,7 @@ export const getAllExpense = async (req, res) => {
       const isOwner = exp.user._id.toString() === userId;
       let userPays = 0;
       let userReceives = 0;
+
       if (isOwner) {
         // Others owe this user
         userReceives = exp.splits
@@ -137,6 +146,7 @@ export const getAllExpense = async (req, res) => {
           totalToPay += userPays;
         }
       }
+
       return {
         ...exp.toObject(),
         userRole: isOwner ? 'owner' : 'member',
