@@ -11,6 +11,7 @@ function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups' or 'expenses' or 'tracking'
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -29,6 +30,10 @@ function Dashboard() {
       navigate('/login');
     });
 
+  setLoading(true);
+  let tripsDone = false;
+  let expensesDone = false;
+
   api.get('/group/allgroups')
     .then((res) => {
       const data = res.data;
@@ -37,7 +42,11 @@ function Dashboard() {
       const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setRecentTrips(sortedGroups.slice(0, 3)); // show latest 3 trips
     })
-    .catch((err) => console.error('Error fetching trips:', err));
+    .catch((err) => console.error('Error fetching trips:', err))
+    .finally(() => {
+      tripsDone = true;
+      if (expensesDone) setLoading(false);
+    });
 
   api.get('/expense/allexpenses')
   .then((res) => {
@@ -45,7 +54,11 @@ function Dashboard() {
     if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
     setRecentExpenses(data.expenses.slice(0, 3)); // show latest 3 expenses
   })
-  .catch((err) => console.error('Error fetching expenses:', err));
+  .catch((err) => console.error('Error fetching expenses:', err))
+  .finally(() => {
+    expensesDone = true;
+    if (tripsDone) setLoading(false);
+  });
 }, [navigate]);
 
 
@@ -127,6 +140,20 @@ function Dashboard() {
         {/* Page Content */}
         <section className="flex-1 p-6 bg-white overflow-auto flex justify-center mt-16">
           {activeView === 'dashboard' ? (
+            loading ? (
+              <div className="w-full max-w-4xl space-y-6">
+                <div className="border border-gray-300 rounded-xl p-4">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
             <div className="w-full max-w-4xl space-y-6">
     <div className="border border-gray-300 rounded-xl p-4">
       <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
@@ -169,6 +196,7 @@ function Dashboard() {
       )}
     </div>
             </div>
+            )
           ) : activeView === 'groups' ? (
             <Groups />
           ) : activeView === 'expenses' ? (
