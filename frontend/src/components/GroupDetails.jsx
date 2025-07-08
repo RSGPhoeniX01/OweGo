@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import api from "../api";
-import Header from "./Header";
-import ExpenseDetails from "./ExpenseDetails";
-import CreateExpense from "./CreateExpense";
-import editIcon from "../assets/editsvg.svg";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import api from '../api';
+import Header from './Header';
+import ExpenseDetails from './ExpenseDetails';
+import CreateExpense from './CreateExpense';
+import editIcon from '../assets/editsvg.svg';
+import SettleUp from './SettleUp';
+import {jwtDecode} from 'jwt-decode';
 
 import EditGroupModal from "./EditGroupModal";
 function GroupDetails() {
@@ -21,8 +23,21 @@ function GroupDetails() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] =
-    useState(false);
+  const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] = useState(false);
+  const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
+  const [isGroupSettled, setIsGroupSettled] = useState(false);
+  const [settledStatusMap, setSettledStatusMap] = useState({});
+
+  // Get userId from token (original, simple)
+  let userId = '';
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      userId = jwtDecode(token).userId;
+    }
+  } catch (e) {
+    userId = '';
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,6 +68,16 @@ function GroupDetails() {
           creator: group.creator?.username,
         }));
         setGroups(fetchedGroups);
+        // Fetch settle status for all groups
+        api.post('/settleup/multi-status', { groupIds: data.groups.map(g => g._id) })
+          .then(res2 => {
+            if (res2.data && res2.data.success) {
+              setSettledStatusMap(res2.data.status);
+              // Filter out settled groups - only show active groups
+              const activeGroups = fetchedGroups.filter(group => !res2.data.status[group.id]);
+              setGroups(activeGroups);
+            }
+          });
         let initialGroup = null;
         if (routeGroupId) {
           initialGroup = data.groups.find((g) => g._id === routeGroupId);
@@ -70,6 +95,17 @@ function GroupDetails() {
         console.error("Error fetching groups:", err);
         alert("Could not load groups. Please try again later.");
       });
+
+    // Check if group is settled when group changes
+    if (routeGroupId) {
+      api.get(`/settleup/${routeGroupId}/status`).then(res => {
+        if (res.data && res.data.allSettled) {
+          setIsGroupSettled(true);
+        } else {
+          setIsGroupSettled(false);
+        }
+      }).catch(() => setIsGroupSettled(false));
+    }
   }, [navigate, routeGroupId]);
 
   const fetchExpenses = (groupId) => {
@@ -197,40 +233,10 @@ function GroupDetails() {
       fetchExpenses(group.id);
     }
   };
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [groupBeingEdited, setGroupBeingEdited] = useState(null);
-  const handleEditGroupClick = (group) => {
-    setGroupBeingEdited(group);
-    setIsEditModalOpen(true);
-  };
 
-  const handleSaveEditedGroup = async (updatedGroup) => {
-    try {
-      const res = await api.put(`/group/${updatedGroup.id}/edit`, {
-        name: updatedGroup.name,
-        description: updatedGroup.description,
-      });
-
-      if (res.data.success) {
-        // Update local state
-        setGroups((prev) =>
-          prev.map((g) =>
-            g.id === updatedGroup.id ? { ...g, ...updatedGroup } : g
-          )
-        );
-        if (selectedGroup === updatedGroup.name) {
-          setSelectedGroup(updatedGroup.name);
-        }
-        setIsEditModalOpen(false);
-        alert("Group updated successfully");
-      } else {
-        alert("Failed to update group");
-      }
-    } catch (error) {
-      console.error("Edit group error:", error);
-      alert("An error occurred while updating the group");
-    }
-  };
+  const selectedGroupObj = groups.find(g => g.name === selectedGroup);
+  const groupId = selectedGroupObj?.id;
+  const groupMembers = selectedGroupObj?.members || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -250,18 +256,20 @@ function GroupDetails() {
           <div className="p-4">
             <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
             <div className="space-y-2">
-              {groups.length > 0 ? (
-                groups.map((group, index) => (
-                  <div
-                    key={index}
-                    className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                      selectedGroup === group.name
-                        ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
-                        : "hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleGroupSelect(group.name)}
-                  >
-                    <span className="flex-1 truncate">{group.name}</span>
+            {groups.length > 0 ? (
+              groups.map((group, index) => (
+                <div
+                  key={index}
+                  className={`w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                    selectedGroup === group.name
+                      ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600'
+                      : settledStatusMap[group.id]
+                        ? 'bg-green-100 text-green-800 border-l-4 border-green-500'
+                        : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => handleGroupSelect(group.name)}
+                >
+                  <span className="flex-1 truncate">{group.name}</span>
 
                     <button
                       type="button"
@@ -304,6 +312,13 @@ function GroupDetails() {
               </h1>
             </div>
 
+            {/* Settled group indicator */}
+            {isGroupSettled && (
+              <div className="mb-6 p-4 rounded-lg bg-green-100 border border-green-300 flex items-center justify-center">
+                <span className="text-green-800 font-bold text-lg">Group Settled ✓</span>
+              </div>
+            )}
+            
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Members</h2>
@@ -434,12 +449,20 @@ function GroupDetails() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Group Expenses</h2>
-                <button
-                  onClick={handleAddExpense}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Add Expense
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleAddExpense}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Add Expense
+                  </button>
+                  <button
+                    onClick={() => setIsSettleUpOpen(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Settle Up
+                  </button>
+                </div>
               </div>
               <div className="space-y-3">
                 {expenses.map((expense) => (
@@ -477,17 +500,19 @@ function GroupDetails() {
 
       {/* Create Expense Modal */}
       <CreateExpense
-        groupId={groups.find((g) => g.name === selectedGroup)?.id}
+        groupId={groupId}
         isOpen={isCreateExpenseModalOpen}
         onClose={handleCloseCreateExpenseModal}
         onExpenseCreated={handleExpenseCreated}
       />
-      {/* Edit Group Modal */}
-      <EditGroupModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        group={groupBeingEdited}
-        onSave={handleSaveEditedGroup}
+
+      {/* SettleUp modal */}
+      <SettleUp
+        groupId={groupId}
+        isOpen={isSettleUpOpen}
+        onClose={() => setIsSettleUpOpen(false)}
+        userId={userId}
+        groupMembers={groupMembers}
       />
     </div>
   );

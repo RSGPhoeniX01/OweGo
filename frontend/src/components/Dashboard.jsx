@@ -4,12 +4,13 @@ import api from '../api';
 import Header from './Header';
 import Groups from './Groups';
 import UserExpenses from './UserExpenses';
+import Tracking from './Tracking';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups'
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups' or 'expenses' or 'tracking'
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -104,7 +105,14 @@ function Dashboard() {
               >
                 Expenses
               </button>
-              <button className="w-full text-left px-4 py-2 border rounded">
+              <button
+                onClick={() => setActiveView('tracking')} 
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                  activeView === 'tracking' 
+                    ? 'bg-green-600 text-white' 
+                    : 'border hover:bg-gray-50'
+                }`}
+              >
                 Tracking
               </button>
             </nav>
@@ -163,8 +171,10 @@ function Dashboard() {
             </div>
           ) : activeView === 'groups' ? (
             <Groups />
-          ) : (
+          ) : activeView === 'expenses' ? (
             <UserExpenses />
+          ) : (
+            <Tracking />
           )}
         </section>
       </main>
