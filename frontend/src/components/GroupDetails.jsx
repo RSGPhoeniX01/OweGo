@@ -27,6 +27,37 @@ function GroupDetails() {
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
   const [isGroupSettled, setIsGroupSettled] = useState(false);
   const [settledStatusMap, setSettledStatusMap] = useState({});
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [groupBeingEdited, setGroupBeingEdited] = useState(null);
+  const handleEditGroupClick = (group) => {
+  setGroupBeingEdited(group);
+  setIsEditModalOpen(true);
+};
+  const handleSaveGroupChanges = async (updatedGroup) => {
+  try {
+    const res = await api.put(`/group/${updatedGroup.id}/edit`, {
+      name: updatedGroup.name,
+      description: updatedGroup.description,
+    });
+
+    if (res.data.success) {
+      // Update group list locally
+      setGroups((prev) =>
+        prev.map((g) => (g.id === updatedGroup.id ? { ...g, ...updatedGroup } : g))
+      );
+      if (selectedGroup === updatedGroup.name) {
+        setSelectedGroup(updatedGroup.name); // reflect name change
+      }
+      setIsEditModalOpen(false);
+      setGroupBeingEdited(null);
+    } else {
+      alert("Failed to update group.");
+    }
+  } catch (error) {
+    console.error("Update group failed:", error);
+    alert("Something went wrong while updating the group.");
+  }
+};
 
   // Get userId from token (original, simple)
   let userId = '';
@@ -66,6 +97,7 @@ function GroupDetails() {
           name: group.name,
           members: group.members.map((m) => m.username),
           creator: group.creator?.username,
+          creatorId: group.creator?._id,
         }));
         setGroups(fetchedGroups);
         // Fetch settle status for all groups
@@ -237,7 +269,6 @@ function GroupDetails() {
   const selectedGroupObj = groups.find(g => g.name === selectedGroup);
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -260,7 +291,7 @@ function GroupDetails() {
               groups.map((group, index) => (
                 <div
                   key={index}
-                  className={`w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                  className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
                     selectedGroup === group.name
                       ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600'
                       : settledStatusMap[group.id]
@@ -269,22 +300,25 @@ function GroupDetails() {
                   }`}
                   onClick={() => handleGroupSelect(group.name)}
                 >
-                  <span className="flex-1 truncate">{group.name}</span>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditGroupClick(group);
-                      }}
-                      className="hidden group-hover:flex items-center justify-center p-1 rounded hover:bg-gray-200 transition"
-                    >
-                      <img
-                        src={editIcon}
-                        alt="Edit"
-                        className="h-4 w-4 opacity-70 hover:opacity-100"
-                      />
-                    </button>
+                  <span className="flex-1 truncate">{group.name}</span>
+                  
+                    {userId === group.creatorId && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditGroupClick(group);
+                        }}
+                        className="hidden group-hover:flex items-center justify-center p-1 rounded hover:bg-gray-200 transition"
+                      >
+                        <img
+                          src={editIcon}
+                          alt="Edit"
+                          className="h-4 w-4 opacity-70 hover:opacity-100"
+                        />
+                      </button>
+                    )}
                   </div>
                 ))
               ) : (
@@ -514,8 +548,14 @@ function GroupDetails() {
         userId={userId}
         groupMembers={groupMembers}
       />
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        group={groupBeingEdited}
+        onSave={handleSaveGroupChanges}
+      />
     </div>
   );
 }
-
 export default GroupDetails;
