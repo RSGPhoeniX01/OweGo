@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import ExpenseDetails from './ExpenseDetails';
 
-function UserExpenses() {
+function UserExpenses({ preloaded }) {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalToPay, setTotalToPay] = useState(0);
@@ -11,8 +11,16 @@ function UserExpenses() {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
   useEffect(() => {
+  if (preloaded) {
+    setExpenses(preloaded.expenses || []);
+    setTotalToPay(preloaded.totalToPay || 0);
+    setTotalToReceive(preloaded.totalToReceive || 0);
+    setLoading(false);
+  } else {
     fetchExpenses();
-  }, []);
+  }
+}, [preloaded]);
+
 
   const fetchExpenses = async () => {
     try {

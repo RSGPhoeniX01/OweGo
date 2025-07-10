@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 
-function Tracking() {
+function Tracking({ preloaded }) {
   const [settledGroups, setSettledGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   useEffect(() => {
+  if (preloaded) {
+    setSettledGroups(preloaded || []);
+    setLoading(false);
+  } else {
     fetchSettledGroups();
-  }, []);
+  }
+}, [preloaded]);
+
 
   const fetchSettledGroups = async () => {
     try {

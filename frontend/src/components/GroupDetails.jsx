@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import api from '../api';
-import Header from './Header';
-import ExpenseDetails from './ExpenseDetails';
-import CreateExpense from './CreateExpense';
-import editIcon from '../assets/editsvg.svg';
-import SettleUp from './SettleUp';
-import {jwtDecode} from 'jwt-decode';
-
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import api from "../api";
+import Header from "./Header";
+import ExpenseDetails from "./ExpenseDetails";
+import CreateExpense from "./CreateExpense";
+import editIcon from "../assets/editsvg.svg";
+import SettleUp from "./SettleUp";
+import { jwtDecode } from "jwt-decode";
+import EditExpenseModal from "./EditExpenseModal";
 import EditGroupModal from "./EditGroupModal";
 function GroupDetails() {
   const navigate = useNavigate();
@@ -23,51 +23,54 @@ function GroupDetails() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] = useState(false);
+  const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] =
+    useState(false);
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
   const [isGroupSettled, setIsGroupSettled] = useState(false);
   const [settledStatusMap, setSettledStatusMap] = useState({});
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState(null);
   const handleEditGroupClick = (group) => {
-  setGroupBeingEdited(group);
-  setIsEditModalOpen(true);
-};
+    setGroupBeingEdited(group);
+    setIsEditModalOpen(true);
+  };
   const handleSaveGroupChanges = async (updatedGroup) => {
-  try {
-    const res = await api.put(`/group/${updatedGroup.id}/edit`, {
-      name: updatedGroup.name,
-      description: updatedGroup.description,
-    });
+    try {
+      const res = await api.put(`/group/${updatedGroup.id}/edit`, {
+        name: updatedGroup.name,
+        description: updatedGroup.description,
+      });
 
-    if (res.data.success) {
-      // Update group list locally
-      setGroups((prev) =>
-        prev.map((g) => (g.id === updatedGroup.id ? { ...g, ...updatedGroup } : g))
-      );
-      if (selectedGroup === updatedGroup.name) {
-        setSelectedGroup(updatedGroup.name); // reflect name change
+      if (res.data.success) {
+        // Update group list locally
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === updatedGroup.id ? { ...g, ...updatedGroup } : g
+          )
+        );
+        if (selectedGroup === updatedGroup.name) {
+          setSelectedGroup(updatedGroup.name); // reflect name change
+        }
+        setIsEditModalOpen(false);
+        setGroupBeingEdited(null);
+      } else {
+        alert("Failed to update group.");
       }
-      setIsEditModalOpen(false);
-      setGroupBeingEdited(null);
-    } else {
-      alert("Failed to update group.");
+    } catch (error) {
+      console.error("Update group failed:", error);
+      alert("Something went wrong while updating the group.");
     }
-  } catch (error) {
-    console.error("Update group failed:", error);
-    alert("Something went wrong while updating the group.");
-  }
-};
+  };
 
   // Get userId from token (original, simple)
-  let userId = '';
+  let userId = "";
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       userId = jwtDecode(token).userId;
     }
   } catch (e) {
-    userId = '';
+    userId = "";
   }
 
   useEffect(() => {
@@ -101,12 +104,17 @@ function GroupDetails() {
         }));
         setGroups(fetchedGroups);
         // Fetch settle status for all groups
-        api.post('/settleup/multi-status', { groupIds: data.groups.map(g => g._id) })
-          .then(res2 => {
+        api
+          .post("/settleup/multi-status", {
+            groupIds: data.groups.map((g) => g._id),
+          })
+          .then((res2) => {
             if (res2.data && res2.data.success) {
               setSettledStatusMap(res2.data.status);
               // Filter out settled groups - only show active groups
-              const activeGroups = fetchedGroups.filter(group => !res2.data.status[group.id]);
+              const activeGroups = fetchedGroups.filter(
+                (group) => !res2.data.status[group.id]
+              );
               setGroups(activeGroups);
             }
           });
@@ -130,13 +138,16 @@ function GroupDetails() {
 
     // Check if group is settled when group changes
     if (routeGroupId) {
-      api.get(`/settleup/${routeGroupId}/status`).then(res => {
-        if (res.data && res.data.allSettled) {
-          setIsGroupSettled(true);
-        } else {
-          setIsGroupSettled(false);
-        }
-      }).catch(() => setIsGroupSettled(false));
+      api
+        .get(`/settleup/${routeGroupId}/status`)
+        .then((res) => {
+          if (res.data && res.data.allSettled) {
+            setIsGroupSettled(true);
+          } else {
+            setIsGroupSettled(false);
+          }
+        })
+        .catch(() => setIsGroupSettled(false));
     }
   }, [navigate, routeGroupId]);
 
@@ -266,7 +277,52 @@ function GroupDetails() {
     }
   };
 
-  const selectedGroupObj = groups.find(g => g.name === selectedGroup);
+  // Function to open the edit expense modal
+  const [editExpense, setEditExpense] = useState(null);
+  const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
+  const openEditExpense = (expense) => {
+    setEditExpense(expense);
+    setIsEditExpenseModalOpen(true);
+  };
+
+  const handleUpdateExpense = async (updated) => {
+    try {
+      // console.log("✅ Reached updateExpense");
+      const res = await api.put(`/expense/${updated._id}/editexpense`, {
+        description: updated.description,
+        amount: updated.amount,
+      });
+      if (res.data.success) {
+        alert("Expense updated");
+        fetchExpenses(groupId);
+        setIsEditExpenseModalOpen(false);
+      }
+    } catch (err) {
+      console.error("Error updating:", err);
+      alert("Update failed");
+    }
+  };
+  const deleteExpense = async (expenseId) => {
+    if (!window.confirm("Are you sure you want to delete this expense?"))
+      return;
+
+    try {
+      const res = await api.delete(`/expense/${expenseId}/deleteexpense`);
+      if (res.data.success) {
+        alert("Expense deleted successfully");
+        // Refresh the expense list
+        const group = groups.find((g) => g.name === selectedGroup);
+        if (group) fetchExpenses(group.id);
+      } else {
+        alert(res.data.message || "Failed to delete expense");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Error deleting expense");
+    }
+  };
+
+  const selectedGroupObj = groups.find((g) => g.name === selectedGroup);
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
   return (
@@ -287,22 +343,21 @@ function GroupDetails() {
           <div className="p-4">
             <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
             <div className="space-y-2">
-            {groups.length > 0 ? (
-              groups.map((group, index) => (
-                <div
-                  key={index}
-                  className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                    selectedGroup === group.name
-                      ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-600'
-                      : settledStatusMap[group.id]
-                        ? 'bg-green-100 text-green-800 border-l-4 border-green-500'
-                        : 'hover:bg-gray-100'
-                  }`}
-                  onClick={() => handleGroupSelect(group.name)}
-                >
+              {groups.length > 0 ? (
+                groups.map((group, index) => (
+                  <div
+                    key={index}
+                    className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                      selectedGroup === group.name
+                        ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
+                        : settledStatusMap[group.id]
+                        ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                        : "hover:bg-gray-100"
+                    }`}
+                    onClick={() => handleGroupSelect(group.name)}
+                  >
+                    <span className="flex-1 truncate">{group.name}</span>
 
-                  <span className="flex-1 truncate">{group.name}</span>
-                  
                     {userId === group.creatorId && (
                       <button
                         type="button"
@@ -349,10 +404,12 @@ function GroupDetails() {
             {/* Settled group indicator */}
             {isGroupSettled && (
               <div className="mb-6 p-4 rounded-lg bg-green-100 border border-green-300 flex items-center justify-center">
-                <span className="text-green-800 font-bold text-lg">Group Settled ✓</span>
+                <span className="text-green-800 font-bold text-lg">
+                  Group Settled ✓
+                </span>
               </div>
             )}
-            
+
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Members</h2>
@@ -484,7 +541,7 @@ function GroupDetails() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Group Expenses</h2>
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={handleAddExpense}
                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                   >
@@ -499,26 +556,49 @@ function GroupDetails() {
                 </div>
               </div>
               <div className="space-y-3">
-                {expenses.map((expense) => (
-                  <div
-                    key={expense._id}
-                    className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleExpenseClick(expense)}
-                  >
-                    <div className="flex-1">
-                      <h3 className="font-medium">{expense.description}</h3>
-                      <p className="text-sm text-gray-600">
-                        Paid by {expense.user?.username || "Unknown"} •{" "}
-                        {new Date(expense.updatedAt).toLocaleDateString()}
-                      </p>
+                {expenses.map((expense) => {
+                  const isOwner = expense.user?._id === userId;
+
+                  return (
+                    <div
+                      key={expense._id}
+                      className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div
+                        className="flex-1"
+                        onClick={() => handleExpenseClick(expense)}
+                      >
+                        <h3 className="font-medium">{expense.description}</h3>
+                        <p className="text-sm text-gray-600">
+                          Paid by {expense.user?.username || "Unknown"} •{" "}
+                          {new Date(expense.updatedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-lg font-semibold text-green-600">
+                          ₹{expense.amount}
+                        </span>
+                        {isOwner && (
+                          <div className="flex gap-2 mt-1 justify-end">
+                            <button
+                              onClick={() => openEditExpense(expense)}
+                              className="text-blue-600 text-sm hover:underline"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => deleteExpense(expense._id)}
+                              className="text-red-600 text-sm hover:underline"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-lg font-semibold text-green-600">
-                        ₹{expense.amount}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -554,6 +634,13 @@ function GroupDetails() {
         onClose={() => setIsEditModalOpen(false)}
         group={groupBeingEdited}
         onSave={handleSaveGroupChanges}
+      />
+      {/* Edit Expense Modal */}
+      <EditExpenseModal
+        isOpen={isEditExpenseModalOpen}
+        onClose={() => setIsEditExpenseModalOpen(false)}
+        expense={editExpense}
+        onSave={handleUpdateExpense}
       />
     </div>
   );

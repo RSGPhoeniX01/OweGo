@@ -1,4 +1,5 @@
-import React, { useEffect,useState  } from 'react';
+import React, { useEffect,useState,useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import Header from './Header';
@@ -12,6 +13,38 @@ function Dashboard() {
   const [recentExpenses, setRecentExpenses] = useState([]);
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups' or 'expenses' or 'tracking'
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+
+// Scroll to section based on query param
+const [userExpenseData, setUserExpenseData] = useState(null);
+const [settledGroupData, setSettledGroupData] = useState(null);
+useEffect(() => {
+  const view = searchParams.get('view');
+
+  if (view === 'expenses') {
+    setActiveView('expenses');
+
+    //Preload user expenses
+    api.get('/expense/allexpenses')
+      .then(res => {
+        if (res.data.success) setUserExpenseData(res.data);
+      })
+      .catch(err => console.error("Preload user expenses failed:", err));
+
+  } else if (view === 'settlements') {
+    setActiveView('tracking');
+
+    // Preload settled group data
+    api.get('/settleup/settled-groups')
+      .then(res => {
+        if (res.data.success) setSettledGroupData(res.data.settledGroups);
+      })
+      .catch(err => console.error("Preload settlements failed:", err));
+  }
+}, [searchParams]);
+//**** */
+
+
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -200,9 +233,9 @@ function Dashboard() {
           ) : activeView === 'groups' ? (
             <Groups />
           ) : activeView === 'expenses' ? (
-            <UserExpenses />
+            <UserExpenses preloaded={userExpenseData} />
           ) : (
-            <Tracking />
+            <Tracking preloaded={settledGroupData} />
           )}
         </section>
       </main>
