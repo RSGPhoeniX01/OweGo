@@ -37,13 +37,11 @@ function Profile() {
         setUser(profileRes.data.data);
         setGroupCount(groupsRes.data.groups.length);
 
-        // Total of all expense amounts
-        const allExpenses = expensesRes.data.expenses || [];
-        const totalAmt = allExpenses.reduce(
-          (sum, exp) => sum + (exp.amount || 0),
-          0
-        );
-        setTotalExpenses(totalAmt);
+        // Use the same logic as UserExpenses.jsx for net balance
+        const totalToPay = expensesRes.data.totalToPay || 0;
+        const totalToReceive = expensesRes.data.totalToReceive || 0;
+        const netExpense = totalToReceive - totalToPay;
+        setTotalExpenses(netExpense);
 
         // Number of settled groups
         setSettlementCount(settledRes.data.settledGroups.length);
@@ -57,11 +55,6 @@ function Profile() {
       });
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    alert("Logged out successfully!");
-    navigate("/login");
-  };
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -148,12 +141,6 @@ function Profile() {
                   </button>
                 </>
               )}
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
             </div>
           </div>
 
@@ -299,12 +286,12 @@ function Profile() {
                   onClick={() => navigate("/dashboard?view=expenses")}
                 >
                   <h3 className="font-semibold text-green-800">
-                    Total Expenses
+                    Net Expense
                   </h3>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className={`text-2xl font-bold ${totalExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     ₹{totalExpenses.toFixed(2)}
                   </p>
-                  <p className="text-sm text-green-600">Across active groups</p>
+                  <p className="text-sm text-green-600">(Your net expense)</p>
                 </div>
                 <div
                   className="bg-purple-50 p-4 rounded-lg cursor-pointer hover:bg-purple-100"
