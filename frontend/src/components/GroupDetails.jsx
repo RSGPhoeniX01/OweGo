@@ -9,8 +9,11 @@ import SettleUp from "./SettleUp";
 import { jwtDecode } from "jwt-decode";
 import EditExpenseModal from "./EditExpenseModal";
 import EditGroupModal from "./EditGroupModal";
+import open_slider from "../assets/open_slider.svg";
+import closed_slider from "../assets/close_slider.svg";
 function GroupDetails() {
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const routeGroupId = searchParams.get("groupId");
   const [selectedGroup, setSelectedGroup] = useState("");
@@ -286,22 +289,23 @@ function GroupDetails() {
   };
 
   const handleUpdateExpense = async (updated) => {
-    try {
-      // console.log("✅ Reached updateExpense");
-      const res = await api.put(`/expense/${updated._id}/editexpense`, {
-        description: updated.description,
-        amount: updated.amount,
-      });
-      if (res.data.success) {
-        alert("Expense updated");
-        fetchExpenses(groupId);
-        setIsEditExpenseModalOpen(false);
-      }
-    } catch (err) {
-      console.error("Error updating:", err);
-      alert("Update failed");
+  try {
+    const res = await api.put(`/expense/${updated._id}/editexpense`, {
+      description: updated.description,
+      amount: updated.amount,
+      splits: updated.splits  
+    });
+
+    if (res.data.success) {
+      alert("Expense updated");
+      fetchExpenses(groupId);
+      setIsEditExpenseModalOpen(false);
     }
-  };
+  } catch (err) {
+    console.error("Error updating:", err);
+    alert("Update failed");
+  }
+};
   const deleteExpense = async (expenseId) => {
     if (!window.confirm("Are you sure you want to delete this expense?"))
       return;
@@ -331,7 +335,7 @@ function GroupDetails() {
       <div className="flex h-screen ">
         {/* Left Pane - Groups */}
         <div className="w-64 bg-white shadow-lg flex flex-col overflow-y-auto">
-          <div className="p-4 border-b">
+          <div className="p-4 ">
             <button
               onClick={() => navigate("/dashboard")}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
@@ -392,7 +396,6 @@ function GroupDetails() {
             </div>
           </div>
         </div>
-
         <div className="flex-1 flex flex-col overflow-y-auto bg-gray-50">
           <div className="p-6 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
