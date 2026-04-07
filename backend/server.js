@@ -10,13 +10,13 @@ dotenv.config();
 
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 5000;
 
 connectDB();
 
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -33,6 +33,6 @@ app.use('/expense',expenseRoute);
 app.use('/settleup',settleUpRoute);
 
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
+app.listen(port, '0.0.0.0',() => {
+    console.log(`Server is running on port ${port}`);
 });
