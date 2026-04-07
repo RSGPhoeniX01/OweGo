@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'; 
 function SignUp() {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
@@ -108,6 +108,14 @@ function SignUp() {
           {error && <div className="text-red-600 text-center font-medium">{error}</div>}
           {success && <div className="text-green-600 text-center font-medium">{success}</div>}
         </form>
+      <div>
+        <p className="text-center text-gray-600">
+          Already have an account?{' '}Log in{' '}
+          <Link to="/login" className="text-purple-600 hover:underline">
+             here.            
+          </Link>
+        </p>
+      </div>
       </div>
     </div>
   );
