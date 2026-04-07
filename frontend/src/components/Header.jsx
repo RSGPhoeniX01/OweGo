@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import logo from '../assets/logo.svg';
+import logo from '../assets/logo.png';
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isLoggedIn, setIsLoggedIn] = useState(true);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        alert('Logged out successfully!');
+        setIsLoggedIn(false);
         navigate('/login');
     };
 
@@ -26,9 +28,10 @@ export default function Header() {
                     {location.pathname === '/profile' ? (
                         <button 
                             onClick={handleLogout}
+                            disabled={!isLoggedIn}
                             className="border px-4 py-1 rounded font-medium hover:bg-gray-50 transition-colors"
                         >
-                            Logout
+                            {!isLoggedIn ? 'Logging out...' : 'Logout'}
                         </button>
                     ) : (
                         <button 
