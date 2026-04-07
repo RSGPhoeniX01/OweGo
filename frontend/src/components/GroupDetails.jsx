@@ -177,6 +177,7 @@ function GroupDetails() {
       setMembers(group.members);
       fetchExpenses(group.id);
       setSearchParams({ groupId: group.id });
+      setSidebarOpen(false);
     }
   };
 
@@ -334,70 +335,85 @@ function GroupDetails() {
       <Header />
       <div className="flex h-screen ">
         {/* Left Pane - Groups */}
-        <div className="w-64 bg-white shadow-lg flex flex-col overflow-y-auto">
-          <div className="p-4 ">
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-            >
-              Back to Dashboard
-            </button>
-          </div>
+        <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-64' : 'w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5"
+            title="Toggle sidebar"
+          >
+            <img
+              src={sidebarOpen ? closed_slider : open_slider}
+              alt="Toggle Sidebar"
+              className="w-4 h-4"
+            />
+          </button>
+          {sidebarOpen && (
+            <>
+              <div className="p-4 mt-10">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                >
+                  Back to Dashboard
+                </button>
+              </div>
 
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
-            <div className="space-y-2">
-              {groups.length > 0 ? (
-                groups.map((group, index) => (
-                  <div
-                    key={index}
-                    className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                      selectedGroup === group.name
-                        ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
-                        : settledStatusMap[group.id]
-                        ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-                        : "hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleGroupSelect(group.name)}
-                  >
-                    <span className="flex-1 truncate">{group.name}</span>
-
-                    {userId === group.creatorId && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditGroupClick(group);
-                        }}
-                        className="hidden group-hover:flex items-center justify-center p-1 rounded hover:bg-gray-200 transition"
+              <div className="p-4 pb-20">
+                <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
+                <div className="space-y-2">
+                  {groups.length > 0 ? (
+                    groups.map((group, index) => (
+                      <div
+                        key={index}
+                        className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                          selectedGroup === group.name
+                            ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
+                            : settledStatusMap[group.id]
+                            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                            : "hover:bg-gray-100"
+                        }`}
+                        onClick={() => handleGroupSelect(group.name)}
                       >
-                        <img
-                          src={editIcon}
-                          alt="Edit"
-                          className="h-4 w-4 opacity-70 hover:opacity-100"
-                        />
-                      </button>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="text-gray-500 text-sm text-center mt-4">
-                  You don't have any groups yet. Create one to get started!
+                        <span className="flex-1 truncate">{group.name}</span>
+
+                        {userId === group.creatorId && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditGroupClick(group);
+                            }}
+                            className="hidden group-hover:flex items-center justify-center p-1 rounded hover:bg-gray-200 transition"
+                          >
+                            <img
+                              src={editIcon}
+                              alt="Edit"
+                              className="h-4 w-4 opacity-70 hover:opacity-100"
+                            />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-gray-500 text-sm text-center mt-4">
+                      You don't have any groups yet. Create one to get started!
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="mt-6">
-              <button
-                onClick={() => navigate("/creategroup")}
-                className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
-              >
-                + Create Group
-              </button>
-            </div>
-          </div>
+                <div className="mt-6 mb-4">
+                  <button
+                    onClick={() => navigate("/creategroup")}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+                  >
+                    + Create Group
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-        <div className="flex-1 flex flex-col overflow-y-auto bg-gray-50">
-          <div className="p-6 max-w-4xl mx-auto">
+        <div className={`flex-1 flex flex-col overflow-y-auto bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-12'}`}>
+          <div className="p-6 max-w-4xl mx-auto mt-16">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-800">
                 {selectedGroup}
@@ -607,6 +623,7 @@ function GroupDetails() {
           </div>
         </div>
       </div>
+
 
       {/* Expense Details Modal */}
       <ExpenseDetails
