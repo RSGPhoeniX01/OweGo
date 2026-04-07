@@ -23,7 +23,7 @@ function Home() {
       <Header />
       <section className="pt-20 pb-16 text-center max-w-5xl mx-auto px-4">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-4">
-          Welcome to <span className="text-orange-600">OweGo</span>
+          Welcome to new <span className="text-orange-600">OweGo</span>
         </h1>
         <p className="text-lg text-gray-600">
           Simplifying shared expenses for you and your friends.
