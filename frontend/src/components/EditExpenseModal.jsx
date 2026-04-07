@@ -98,13 +98,13 @@ function EditExpenseModal({ isOpen, onClose, expense, onSave }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+              className="px-4 py-2 text-gray-600 cursor-pointer hover:bg-gray-100 rounded"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
             >
               Save
             </button>

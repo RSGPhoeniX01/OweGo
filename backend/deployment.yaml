@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: owego-backend
+  template:
+    metadata:
+      labels:
+        app: owego-backend
+    spec:
+      containers:
+      - name: owego-backend
+        image: owego-backend:v1 # Replace with your image
+        envFrom:
+            - secretRef:
+                name: owego-backend-secret
+        ports:
+        - containerPort: 5000
+        env:
+        - name: PORT
+          value: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: owego-backend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: owego-backend
+  ports:
+  - port: 5000
+    targetPort: 5000

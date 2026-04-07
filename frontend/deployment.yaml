@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: owego-frontend
+  template:
+    metadata:
+      labels:
+        app: owego-frontend
+    spec:
+      containers:
+      - name: owego-frontend
+        image: owego-frontend:v2 # Replace with your image
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service 
+metadata:
+  name: owego-frontend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: owego-frontend
+  ports:
+  - port: 80
+    targetPort: 80

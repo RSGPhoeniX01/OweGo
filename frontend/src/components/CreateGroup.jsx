@@ -79,14 +79,23 @@ function CreateGroup() {
             <p className="text-xs text-gray-500 mt-1">Enter usernames separated by commas.</p>
 
           </div>
-
+          <div className="flex justify-end space-x-3 pt-1">
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer transition-colors disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create Group'}
           </button>
+          <button
+              type="button"
+              onClick={() => navigate('/groupdetails')}
+              disabled={loading}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 cursor-pointer transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>
