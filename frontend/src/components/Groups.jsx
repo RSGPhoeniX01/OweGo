@@ -76,7 +76,7 @@ function Groups() {
           <h2 className="text-xl font-semibold">All Groups</h2>
           <button
             onClick={() => navigate('/creategroup')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
           >
             + Create Group
           </button>

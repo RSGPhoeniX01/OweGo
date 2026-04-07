@@ -338,7 +338,7 @@ function GroupDetails() {
         <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-64' : 'w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5"
+            className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
             title="Toggle sidebar"
           >
             <img
@@ -352,7 +352,7 @@ function GroupDetails() {
               <div className="p-4 mt-10">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center cursor-pointer"
                 >
                   Back to Dashboard
                 </button>
@@ -403,7 +403,7 @@ function GroupDetails() {
                 <div className="mt-6 mb-4">
                   <button
                     onClick={() => navigate("/creategroup")}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center"
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center cursor-pointer"
                   >
                     + Create Group
                   </button>
@@ -481,7 +481,7 @@ function GroupDetails() {
                     )}
                   </div>
                   <button
-                    className={`px-4 py-2 rounded-lg transition-colors ${
+                    className={`px-4 py-2 rounded-lg cursor-pointer transition-colors ${
                       selectedUsers.length > 0
                         ? "bg-blue-600 text-white hover:bg-blue-700"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -562,13 +562,13 @@ function GroupDetails() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleAddExpense}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer transition-colors"
                   >
                     Add Expense
                   </button>
                   <button
                     onClick={() => setIsSettleUpOpen(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
                   >
                     Settle Up
                   </button>
@@ -602,13 +602,13 @@ function GroupDetails() {
                           <div className="flex gap-2 mt-1 justify-end">
                             <button
                               onClick={() => openEditExpense(expense)}
-                              className="text-blue-600 text-sm hover:underline"
+                              className="text-blue-600 text-sm hover:underline cursor-pointer"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => deleteExpense(expense._id)}
-                              className="text-red-600 text-sm hover:underline"
+                              className="text-red-600 text-sm hover:underline cursor-pointer"
                             >
                               Delete
                             </button>

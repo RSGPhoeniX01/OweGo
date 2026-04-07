@@ -121,7 +121,7 @@ function Profile() {
               {!isEditing ? (
                 <button
                   onClick={handleEdit}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Edit Profile
                 </button>
@@ -129,13 +129,13 @@ function Profile() {
                 <>
                   <button
                     onClick={handleSave}
-                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
                   >
                     Save
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                    className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -315,14 +315,14 @@ function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate("/dashboard")}
-                className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-left transition-colors"
+                className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-left  transition-colors cursor-pointer"
               >
                 <h3 className="font-semibold text-gray-800">Dashboard</h3>
                 <p className="text-sm text-gray-600">View your overview</p>
               </button>
               <button
                 onClick={() => navigate("/groupdetails")}
-                className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-left transition-colors"
+                className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-left transition-colors cursor-pointer"
               >
                 <h3 className="font-semibold text-gray-800">Groups</h3>
                 <p className="text-sm text-gray-600">Manage your groups</p>

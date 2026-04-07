@@ -135,7 +135,7 @@ function Tracking({ preloaded }) {
               <h2 className="text-xl font-semibold text-gray-800">{selectedGroup.groupName}</h2>
               <button
                 onClick={handleCloseGroupModal}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold cursor-pointer transition-colors"
               >
                 ×
               </button>
@@ -210,7 +210,7 @@ function Tracking({ preloaded }) {
             <div className="flex justify-end space-x-3 p-6 border-t">
               <button
                 onClick={handleCloseGroupModal}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
               >
                 Close
               </button>

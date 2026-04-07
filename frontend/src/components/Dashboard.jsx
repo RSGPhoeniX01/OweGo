@@ -109,7 +109,7 @@ useEffect(() => {
         
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5"
+          className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
           title="Toggle sidebar"
         >
           <img
@@ -123,7 +123,7 @@ useEffect(() => {
             <nav className="space-y-4">
               <button 
                 onClick={() => setActiveView('dashboard')}
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
                   activeView === 'dashboard' 
                     ? 'bg-green-600 text-white' 
                     : 'border hover:bg-gray-50'
@@ -133,7 +133,7 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => setActiveView('groups')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
                   activeView === 'groups' 
                     ? 'bg-green-600 text-white' 
                     : 'border hover:bg-gray-50'
@@ -143,7 +143,7 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => setActiveView('expenses')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
                   activeView === 'expenses' 
                     ? 'bg-green-600 text-white' 
                     : 'border hover:bg-gray-50'
@@ -153,7 +153,7 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => setActiveView('tracking')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors ${
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
                   activeView === 'tracking' 
                     ? 'bg-green-600 text-white' 
                     : 'border hover:bg-gray-50'
