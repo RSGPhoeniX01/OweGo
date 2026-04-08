@@ -1,10 +1,22 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
     const [isLoggedIn, setIsLoggedIn] = useState(true);
+
+    const scrollToSection = (sectionId) => {
+        if (location.pathname !== '/') {
+            navigate(`/#${sectionId}`);
+            return;
+        }
+
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -79,34 +91,31 @@ export default function Header() {
                     >
                         <ul className="flex flex-col mt-4 font-medium lg:flex-row lg:space-x-8 lg:mt-0">
                             <li>
-                                <NavLink
-                                    to="/"
-                                    className={({ isActive }) =>
-                                        `block py-2 pr-4 pl-3 duration-200 ${isActive ? "text-orange-700" : "text-grey-700"} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0`
-                                    }
+                                <button
+                                    type="button"
+                                    onClick={() => scrollToSection('home')}
+                                    className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
                                 >
                                     Home
-                                </NavLink>
+                                </button>
                             </li>
                             <li>
-                                <NavLink
-                                    to="/features"
-                                    className={({ isActive }) =>
-                                        `block py-2 pr-4 pl-3 duration-200 ${isActive ? "text-orange-700" : "text-grey-700"} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0`
-                                    }
+                                <button
+                                    type="button"
+                                    onClick={() => scrollToSection('features')}
+                                    className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
                                 >
                                     Features
-                                </NavLink>
+                                </button>
                             </li>
                             <li>
-                                <NavLink
-                                    to="/howItWork"
-                                    className={({ isActive }) =>
-                                        `block py-2 pr-4 pl-3 duration-200 ${isActive ? "text-orange-700" : "text-grey-700"} border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0`
-                                    }
+                                <button
+                                    type="button"
+                                    onClick={() => scrollToSection('how-it-works')}
+                                    className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
                                 >
                                     How It Work
-                                </NavLink>
+                                </button>
                             </li>
                         </ul>
                     </div>
