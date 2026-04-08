@@ -1,4 +1,4 @@
-import React, { useEffect,useState,useRef } from 'react';
+import React, { useEffect,useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -6,12 +6,13 @@ import Header from './Header';
 import Groups from './Groups';
 import UserExpenses from './UserExpenses';
 import Tracking from './Tracking';
+import Feedback from './Feedback';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
-  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups' or 'expenses' or 'tracking'
+  const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' or 'groups' or 'expenses' or 'tracking' or 'feedback'
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
@@ -40,6 +41,8 @@ useEffect(() => {
         if (res.data.success) setSettledGroupData(res.data.settledGroups);
       })
       .catch(err => console.error("Preload settlements failed:", err));
+  } else if (view === 'feedback') {
+    setActiveView('feedback');
   }
 }, [searchParams]);
 //**** */
@@ -161,6 +164,19 @@ useEffect(() => {
               >
                 Tracking
               </button>
+              <button
+                onClick={() => setActiveView('feedback')}
+                className={`group relative overflow-hidden w-full text-left px-4 py-2 rounded font-semibold cursor-pointer border transition-all duration-300 ${
+                  activeView === 'feedback'
+                    ? 'bg-sky-300 border-sky-500 shadow-[inset_0_3px_8px_rgba(3,105,161,0.35)] translate-y-[1px]'
+                    : 'bg-sky-200 border-sky-400 shadow-sm hover:shadow-md hover:-translate-y-[1px]'
+                }`}
+              >
+                <span className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/65 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:translate-x-[340%] transition-all duration-700"></span>
+                <span className="relative font-bold text-black">
+                  Feedback
+                </span>
+              </button>
             </nav>
           </div>
         )}
@@ -234,8 +250,10 @@ useEffect(() => {
             <Groups />
           ) : activeView === 'expenses' ? (
             <UserExpenses preloaded={userExpenseData} />
-          ) : (
+          ) : activeView === 'tracking' ? (
             <Tracking preloaded={settledGroupData} />
+          ) : (
+            <Feedback />
           )}
         </section>
       </main>

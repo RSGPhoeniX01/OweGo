@@ -5,6 +5,7 @@ import userRoute from './routes/user.route.js'
 import groupRoute from './routes/group.route.js'
 import expenseRoute from './routes/expense.route.js'
 import settleUpRoute from './routes/settleup.route.js'
+import feedbackRoute from './routes/feedback.route.js'
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use('/user',userRoute);
 app.use('/group',groupRoute);
 app.use('/expense',expenseRoute);
 app.use('/settleup',settleUpRoute);
+app.use('/feedback',feedbackRoute);
 
 
 app.listen(port, '0.0.0.0',() => {
