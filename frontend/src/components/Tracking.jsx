@@ -54,7 +54,7 @@ function Tracking({ preloaded }) {
   const getCategoryIcon = (category) => {
     const icons = {
       food: '🍕',
-      transport: '🚗',
+      travel: '🚗',
       entertainment: '🎬',
       utilities: '💡',
       shopping: '🛍️',

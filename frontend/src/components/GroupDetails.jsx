@@ -11,6 +11,7 @@ import EditExpenseModal from "./EditExpenseModal";
 import EditGroupModal from "./EditGroupModal";
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
+import AddMembers from "./AddMembers";
 function GroupDetails() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -22,9 +23,6 @@ function GroupDetails() {
   const [expenses, setExpenses] = useState([]);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] =
     useState(false);
@@ -131,6 +129,7 @@ function GroupDetails() {
         if (initialGroup) {
           setSelectedGroup(initialGroup.name);
           setMembers(initialGroup.members.map((m) => m.username));
+          setSelectedUsers([]);
           fetchExpenses(initialGroup._id);
         }
       })
@@ -175,6 +174,7 @@ function GroupDetails() {
     if (group) {
       setSelectedGroup(group.name);
       setMembers(group.members);
+      setSelectedUsers([]);
       fetchExpenses(group.id);
       setSearchParams({ groupId: group.id });
       setSidebarOpen(false);
@@ -189,46 +189,6 @@ function GroupDetails() {
   const handleCloseExpenseModal = () => {
     setIsExpenseModalOpen(false);
     setSelectedExpense(null);
-  };
-
-  // --- User Search and Add Member Logic ---
-  const handleSearch = async (query) => {
-    setSearchQuery(query);
-    if (query.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    setIsSearching(true);
-    try {
-      console.log("Searching for:", query);
-      const res = await api.get(`/user/search?q=${encodeURIComponent(query)}`);
-      console.log("Search response:", res.data);
-      if (res.data.success) {
-        // Filter out users who are already in the group
-        const filteredUsers = res.data.users.filter(
-          (user) => !members.includes(user.username)
-        );
-        console.log("Filtered users:", filteredUsers);
-        setSearchResults(filteredUsers);
-      } else {
-        setSearchResults([]);
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      setSearchResults([]);
-    }
-    setIsSearching(false);
-  };
-
-  const handleUserSelect = (user) => {
-    setSelectedUsers((prev) => {
-      const isSelected = prev.find((u) => u._id === user._id);
-      if (isSelected) {
-        return prev.filter((u) => u._id !== user._id);
-      } else {
-        return [...prev, user];
-      }
-    });
   };
 
   const handleAddSelectedUsers = async () => {
@@ -253,17 +213,11 @@ function GroupDetails() {
 
         // Clear selected users after adding
         setSelectedUsers([]);
-        setSearchQuery("");
-        setSearchResults([]);
       }
     } catch (err) {
       console.error("Add members error:", err);
       alert("Failed to add members. Please try again.");
     }
-  };
-
-  const removeSelectedUser = (userId) => {
-    setSelectedUsers((prev) => prev.filter((u) => u._id !== userId));
   };
 
   const handleAddExpense = () => {
@@ -331,11 +285,11 @@ function GroupDetails() {
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Header />
-      <div className="flex h-screen ">
+      <div className="flex h-screen overflow-x-hidden">
         {/* Left Pane - Groups */}
-        <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-64' : 'w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-56 md:w-64' : 'w-10 md:w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
@@ -352,7 +306,7 @@ function GroupDetails() {
               <div className="p-4 mt-10">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center cursor-pointer"
+                  className="w-full bg-blue-600 text-white text-sm md:text-base py-2 px-3 md:px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center cursor-pointer"
                 >
                   Back to Dashboard
                 </button>
@@ -403,7 +357,7 @@ function GroupDetails() {
                 <div className="mt-6 mb-4">
                   <button
                     onClick={() => navigate("/creategroup")}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center cursor-pointer"
+                    className="w-full bg-green-600 text-white text-sm md:text-base py-2 px-3 md:px-4 rounded-lg hover:bg-green-700 transition-colors text-center cursor-pointer"
                   >
                     + Create Group
                   </button>
@@ -412,10 +366,10 @@ function GroupDetails() {
             </>
           )}
         </div>
-        <div className={`flex-1 flex flex-col overflow-y-auto bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-12'}`}>
-          <div className="p-6 max-w-4xl mx-auto mt-16">
+        <div className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-56 md:ml-64' : 'ml-10 md:ml-12'}`}>
+          <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-800">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 break-words">
                 {selectedGroup}
               </h1>
             </div>
@@ -429,59 +383,23 @@ function GroupDetails() {
               </div>
             )}
 
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Members</h2>
-                <div className="flex items-center space-x-2">
-                  {/* Search Box */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      placeholder="Search user..."
-                      className="p-2 border rounded text-sm w-40"
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 overflow-x-hidden">
+              <div className="mb-6">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div className="w-full min-w-0">
+                    <AddMembers
+                      key={selectedGroup || 'group-members'}
+                      currentUsername=""
+                      selectedUsers={selectedUsers}
+                      onSelectedUsersChange={setSelectedUsers}
+                      label="Add Members"
+                      // helperText="Search and click users to add them to the selected group."
+                      excludedUsernames={members}
+                      showAdminChip={false}
                     />
-                    {searchQuery && searchResults.length > 0 && (
-                      <div className="absolute left-0 mt-1 w-56 bg-white border rounded shadow z-10 max-h-48 overflow-y-auto">
-                        {searchResults.map((user) => {
-                          const isSelected = selectedUsers.find(
-                            (u) => u._id === user._id
-                          );
-                          return (
-                            <div
-                              key={user._id}
-                              className={`flex items-center justify-between px-2 py-1 hover:bg-gray-100 cursor-pointer ${
-                                isSelected ? "bg-blue-50" : ""
-                              }`}
-                              onClick={() => handleUserSelect(user)}
-                            >
-                              <div>
-                                <span className="font-medium">
-                                  {user.username}
-                                </span>
-                                <span className="text-xs text-gray-500 ml-2">
-                                  {user.email}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                {isSelected && (
-                                  <span className="text-blue-600 text-xs">
-                                    ✓
-                                  </span>
-                                )}
-                                <span className="text-blue-600 text-xs font-semibold">
-                                  {isSelected ? "Selected" : "Click to select"}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
                   </div>
                   <button
-                    className={`px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                    className={`w-full md:w-auto self-start md:self-end text-sm md:text-base px-3 md:px-4 py-2 rounded-lg cursor-pointer transition-colors ${
                       selectedUsers.length > 0
                         ? "bg-blue-600 text-white hover:bg-blue-700"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -494,7 +412,9 @@ function GroupDetails() {
                 </div>
               </div>
 
-              {/* Selected Users */}
+              <h2 className="text-lg md:text-xl font-semibold mb-4">Members</h2>
+
+              {/* Selected Users
               {selectedUsers.length > 0 && (
                 <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                   <h3 className="font-medium text-blue-800 mb-2">
@@ -519,9 +439,9 @@ function GroupDetails() {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {members.map((member, index) => {
                   const isCreator =
                     groups.find((g) => g.name === selectedGroup)?.creator ===
@@ -529,7 +449,7 @@ function GroupDetails() {
                   return (
                     <div
                       key={index}
-                      className={`flex items-center space-x-2 p-3 rounded-lg ${
+                      className={`flex items-center space-x-2 p-2.5 md:p-3 rounded-lg min-w-0 ${
                         isCreator
                           ? "bg-yellow-50 border border-yellow-300"
                           : "bg-gray-50"
@@ -542,8 +462,8 @@ function GroupDetails() {
                       >
                         {member.charAt(0)}
                       </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-sm">{member}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-medium text-sm truncate">{member}</span>
                         {isCreator && (
                           <span className="text-xs text-yellow-600 font-medium">
                             Admin
@@ -556,19 +476,19 @@ function GroupDetails() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Group Expenses</h2>
-                <div className="flex gap-2">
+            <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 overflow-x-hidden">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-lg md:text-xl font-semibold">Group Expenses</h2>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleAddExpense}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer transition-colors"
+                    className="bg-green-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer transition-colors w-full sm:w-auto"
                   >
                     Add Expense
                   </button>
                   <button
                     onClick={() => setIsSettleUpOpen(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+                    className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer transition-colors w-full sm:w-auto"
                   >
                     Settle Up
                   </button>
@@ -581,21 +501,21 @@ function GroupDetails() {
                   return (
                     <div
                       key={expense._id}
-                      className="flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 p-3 md:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     >
                       <div
-                        className="flex-1"
+                        className="flex-1 min-w-0"
                         onClick={() => handleExpenseClick(expense)}
                       >
-                        <h3 className="font-medium">{expense.description}</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className="font-medium text-sm md:text-base break-words">{expense.description}</h3>
+                        <p className="text-xs md:text-sm text-gray-600 break-words">
                           Paid by {expense.user?.username || "Unknown"} •{" "}
                           {new Date(expense.updatedAt).toLocaleDateString()}
                         </p>
                       </div>
 
-                      <div className="text-right">
-                        <span className="text-lg font-semibold text-green-600">
+                      <div className="text-left sm:text-right">
+                        <span className="text-base md:text-lg font-semibold text-green-600">
                           ₹{expense.amount}
                         </span>
                         {isOwner && (

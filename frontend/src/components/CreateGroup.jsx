@@ -1,24 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import AddMembers from './AddMembers';
 
 function CreateGroup() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [members, setMembers] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    api.get('/user/profile')
+      .then((res) => {
+        const username = res.data?.data?.username || '';
+        setCurrentUsername(username);
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        navigate('/login');
+      });
+  }, [navigate]);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
 
-    const memberIds = members
-      .split(',')
-      .map(m => m.trim())
-      .filter(m => m.length > 0);
+    const memberUsernames = Array.from(
+      new Set([
+        currentUsername,
+        ...selectedUsers.map((user) => user.username),
+      ])
+    ).filter(Boolean);
 
     setLoading(true);
-    const memberUsernames = members.split(',').map(m => m.trim()).filter(Boolean);
     try {
       const res = await api.post('/group/create', {
         name,
@@ -58,26 +80,21 @@ function CreateGroup() {
           </div>
 
           <div>
-            <label className="block mb-1 font-medium">Description</label>
+            <label className="block mb-1 font-medium">Description (Optional)</label>
             <textarea
               className="w-full border rounded p-2"
-              placeholder="Enter group description"
+              placeholder="Enter group description (optional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-medium">Member Usernames (comma-separated)</label>
-            <input
-            type="text"
-            className="w-full border rounded p-2"
-            placeholder="alice, bob, charlie"
-            value={members}
-            onChange={(e) => setMembers(e.target.value)}
+            <AddMembers
+              currentUsername={currentUsername}
+              selectedUsers={selectedUsers}
+              onSelectedUsersChange={setSelectedUsers}
             />
-            <p className="text-xs text-gray-500 mt-1">Enter usernames separated by commas.</p>
-
           </div>
           <div className="flex justify-end space-x-3 pt-1">
           <button

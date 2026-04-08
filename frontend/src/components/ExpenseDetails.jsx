@@ -16,7 +16,7 @@ function ExpenseDetails({ expense, isOpen, onClose }) {
   const getCategoryIcon = (category) => {
     const icons = {
       food: '🍕',
-      transport: '🚗',
+      travel: '🚗',
       entertainment: '🎬',
       utilities: '💡',
       shopping: '🛍️',

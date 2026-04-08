@@ -172,7 +172,7 @@ function CreateExpense({ groupId, isOpen, onClose, onExpenseCreated }) {
               onChange={(e) => setNewExpense(prev => ({ ...prev, type: e.target.value }))}
             >
               <option value="food">Food</option>
-              <option value="transport">Transport</option>
+              <option value="travel">Travel</option>
               <option value="entertainment">Entertainment</option>
               <option value="utilities">Utilities</option>
               <option value="shopping">Shopping</option>
