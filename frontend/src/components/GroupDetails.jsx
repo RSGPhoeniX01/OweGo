@@ -23,7 +23,6 @@ function GroupDetails() {
   const [expenses, setExpenses] = useState([]);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState([]);
   const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] =
     useState(false);
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
@@ -130,7 +129,6 @@ function GroupDetails() {
         if (initialGroup) {
           setSelectedGroup(initialGroup.name);
           setMembers(initialGroup.members.map((m) => m.username));
-          setSelectedUsers([]);
           fetchExpenses(initialGroup._id);
         }
       })
@@ -175,7 +173,6 @@ function GroupDetails() {
     if (group) {
       setSelectedGroup(group.name);
       setMembers(group.members);
-      setSelectedUsers([]);
       fetchExpenses(group.id);
       setSearchParams({ groupId: group.id });
       setSidebarOpen(false);
@@ -192,15 +189,15 @@ function GroupDetails() {
     setSelectedExpense(null);
   };
 
-  const handleAddSelectedUsers = async () => {
-    if (selectedUsers.length === 0) return;
+  const handleAddMembersToGroup = async (usersToAdd) => {
+    if (usersToAdd.length === 0) return false;
 
     const group = groups.find((g) => g.name === selectedGroup);
-    if (!group) return;
+    if (!group) return false;
 
     try {
       // Get array of user IDs
-      const memberIds = selectedUsers.map((user) => user._id);
+      const memberIds = usersToAdd.map((user) => user._id);
 
       // Add all selected users at once using the correct endpoint
       const res = await api.post(`/group/${group.id}/add-members`, {
@@ -209,15 +206,15 @@ function GroupDetails() {
 
       if (res.data.success) {
         // Add usernames to members list
-        const newUsernames = selectedUsers.map((user) => user.username);
+        const newUsernames = usersToAdd.map((user) => user.username);
         setMembers((prev) => [...prev, ...newUsernames]);
-
-        // Clear selected users after adding
-        setSelectedUsers([]);
+        return true;
       }
+      return false;
     } catch (err) {
       console.error("Add members error:", err);
       alert("Failed to add members. Please try again.");
+      return false;
     }
   };
 
@@ -409,59 +406,18 @@ function GroupDetails() {
                 }`}
               >
                   <div className="mb-6">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                      <div className="w-full min-w-0">
-                        <AddMembers
-                          key={selectedGroup || 'group-members'}
-                          currentUsername=""
-                          selectedUsers={selectedUsers}
-                          onSelectedUsersChange={setSelectedUsers}
-                          label="Add Members"
-                          // helperText="Search and click users to add them to the selected group."
-                          excludedUsernames={members}
-                          showAdminChip={false}
-                        />
-                      </div>
-                      <button
-                        className={`w-full md:w-auto self-start md:self-end text-sm md:text-base px-3 md:px-4 py-2 rounded-lg cursor-pointer transition-colors ${
-                          selectedUsers.length > 0
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
-                        onClick={handleAddSelectedUsers}
-                        disabled={selectedUsers.length === 0}
-                      >
-                        Add Selected ({selectedUsers.length})
-                      </button>
+                    <div className="w-full min-w-0">
+                      <AddMembers
+                        key={selectedGroup || 'group-members'}
+                        currentUsername=""
+                        label="Add Members"
+                        excludedUsernames={members}
+                        showAdminChip={false}
+                        onAddMembers={handleAddMembersToGroup}
+                        addButtonLabel="Add"
+                      />
                     </div>
                   </div>
-
-              {/* Selected Users
-              {selectedUsers.length > 0 && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                  <h3 className="font-medium text-blue-800 mb-2">
-                    Selected Users:
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedUsers.map((user) => (
-                      <div
-                        key={user._id}
-                        className="flex items-center space-x-2 bg-white px-3 py-1 rounded-full border"
-                      >
-                        <span className="text-sm font-medium">
-                          {user.username}
-                        </span>
-                        <button
-                          onClick={() => removeSelectedUser(user._id)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )} */}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     {members.map((member, index) => {

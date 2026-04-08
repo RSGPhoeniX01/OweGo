@@ -9,7 +9,7 @@ function CreateGroup() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUsername, setCurrentUsername] = useState('');
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedMemberUsernames, setSelectedMemberUsernames] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -36,7 +36,7 @@ function CreateGroup() {
     const memberUsernames = Array.from(
       new Set([
         currentUsername,
-        ...selectedUsers.map((user) => user.username),
+        ...selectedMemberUsernames,
       ])
     ).filter(Boolean);
 
@@ -92,8 +92,9 @@ function CreateGroup() {
           <div>
             <AddMembers
               currentUsername={currentUsername}
-              selectedUsers={selectedUsers}
-              onSelectedUsersChange={setSelectedUsers}
+              onSelectionChange={(users) =>
+                setSelectedMemberUsernames(users.map((user) => user.username))
+              }
             />
           </div>
           <div className="flex justify-end space-x-3 pt-1">

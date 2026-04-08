@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'; 
+import Header from './Header';
 function SignUp() {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
@@ -64,7 +65,9 @@ function SignUp() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200">
+    <div className="min-h-screen flex flex-col">
+      <Header />
+    <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 px-4 py-6">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
         <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">Sign Up</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -117,6 +120,7 @@ function SignUp() {
         </p>
       </div>
       </div>
+      </main>
     </div>
   );
 }

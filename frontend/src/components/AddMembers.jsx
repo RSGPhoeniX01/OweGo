@@ -1,20 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../api';
 
 function AddMembers({
   currentUsername = '',
-  selectedUsers,
-  onSelectedUsersChange,
   label = 'Add Members (Optional)',
 //   helperText = 'Search and click users to add them. The logged-in user is always included as Admin.',
   excludedUsernames = [],
   showAdminChip = true,
+  onSelectionChange,
+  onAddMembers,
+  addButtonLabel = 'Add',
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
 
-  const handleSearch = async (query) => {
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsInputFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  const updateSelectedUsers = (updater) => {
+    setSelectedUsers((prev) => {
+      const nextUsers = typeof updater === 'function' ? updater(prev) : updater;
+      if (onSelectionChange) {
+        onSelectionChange(nextUsers);
+      }
+      return nextUsers;
+    });
+  };
+
+  const runSearch = async (query, selectedUsersOverride = selectedUsers) => {
     setSearchQuery(query);
 
     if (query.trim().length < 2) {
@@ -30,7 +60,7 @@ function AddMembers({
           (user) =>
             user.username !== currentUsername &&
             !excludedUsernames.includes(user.username) &&
-            !selectedUsers.some((selected) => selected._id === user._id)
+            !selectedUsersOverride.some((selected) => selected._id === user._id)
         );
         setSearchResults(filteredUsers);
       } else {
@@ -44,32 +74,96 @@ function AddMembers({
     }
   };
 
+  const handleSearch = async (query) => {
+    await runSearch(query);
+  };
+
   const handleUserSelect = (user) => {
     const alreadySelected = selectedUsers.some((selected) => selected._id === user._id);
     const updatedUsers = alreadySelected
       ? selectedUsers.filter((selected) => selected._id !== user._id)
       : [...selectedUsers, user];
 
-    onSelectedUsersChange(updatedUsers);
+    updateSelectedUsers(updatedUsers);
     setSearchResults((prev) => prev.filter((result) => result._id !== user._id));
   };
 
   const removeSelectedUser = (userId) => {
-    onSelectedUsersChange(selectedUsers.filter((user) => user._id !== userId));
+    const updatedUsers = selectedUsers.filter((user) => user._id !== userId);
+    updateSelectedUsers(updatedUsers);
+
+    if (searchQuery.trim().length >= 2) {
+      runSearch(searchQuery, updatedUsers);
+    }
+  };
+
+  const handleAddMembersClick = async () => {
+    if (!onAddMembers || selectedUsers.length === 0 || isAdding) return;
+
+    setIsAdding(true);
+    try {
+      const shouldClear = await onAddMembers(selectedUsers);
+      if (shouldClear !== false) {
+        updateSelectedUsers([]);
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   return (
     <div className="w-full min-w-0">
       <label className="block mb-1 font-medium text-sm md:text-base">{label}</label>
-      <div className="relative">
-        <input
-          type="text"
-          className="w-full border rounded p-2 text-sm md:text-base"
-          placeholder="Search users by username or email"
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
-        {searchQuery.trim().length >= 2 && searchResults.length > 0 && (
+      <div className="relative" ref={containerRef}>
+        <div
+          className="w-full border rounded p-2 bg-white flex items-center gap-2"
+          onClick={() => inputRef.current?.focus()}
+        >
+          <div className="flex-1 min-w-0 flex flex-wrap items-center gap-2">
+            {selectedUsers.map((user) => (
+              <div
+                key={user._id}
+                className="flex items-center space-x-2 bg-blue-50 px-2 py-1 rounded-full border border-blue-200 max-w-full"
+              >
+                <span className="text-xs md:text-sm font-medium break-all">{user.username}</span>
+                <button
+                  type="button"
+                  onClick={() => removeSelectedUser(user._id)}
+                  className="text-red-500 hover:text-red-700 text-sm leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <input
+              ref={inputRef}
+              type="text"
+              className="min-w-[180px] flex-1 border-0 outline-none text-sm md:text-base"
+              placeholder="Search users by username or email"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              onFocus={() => setIsInputFocused(true)}
+            />
+          </div>
+          {onAddMembers && (
+            <button
+              type="button"
+              onClick={handleAddMembersClick}
+              disabled={selectedUsers.length === 0 || isAdding}
+              className={`shrink-0 px-3 py-1 rounded text-xs md:text-sm transition-colors ${
+                selectedUsers.length > 0 && !isAdding
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isAdding ? 'Adding...' : `${addButtonLabel} (${selectedUsers.length})`}
+            </button>
+          )}
+        </div>
+
+        {isInputFocused && searchQuery.trim().length >= 2 && searchResults.length > 0 && (
           <div className="absolute left-0 mt-1 w-full bg-white border rounded shadow z-10 max-h-48 overflow-y-auto">
             {searchResults.map((user) => {
               const isSelected = selectedUsers.some(
@@ -94,7 +188,7 @@ function AddMembers({
             })}
           </div>
         )}
-        {searchQuery.trim().length >= 2 && isSearching && (
+        {isInputFocused && searchQuery.trim().length >= 2 && isSearching && (
           <div className="absolute left-0 mt-1 w-full bg-white border rounded shadow z-10 px-3 py-2 text-sm text-gray-500">
             Searching...
           </div>
@@ -119,28 +213,6 @@ function AddMembers({
         </div>
       )}
 
-      {selectedUsers.length > 0 && (
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-          <h3 className="font-medium text-blue-800 text-sm md:text-base mb-2">Selected Members:</h3>
-          <div className="flex flex-wrap gap-2">
-            {selectedUsers.map((user) => (
-              <div
-                key={user._id}
-                className="flex items-center space-x-2 bg-white px-3 py-1 rounded-full border max-w-full"
-              >
-                <span className="text-sm font-medium break-all">{user.username}</span>
-                <button
-                  type="button"
-                  onClick={() => removeSelectedUser(user._id)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

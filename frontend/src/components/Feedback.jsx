@@ -49,7 +49,7 @@ function Feedback() {
     <div className="w-full max-w-3xl border border-gray-300 rounded-xl p-4 md:p-6 bg-white">
       <h2 className="text-xl md:text-2xl font-bold mb-2">Feedback</h2>
       <p className="text-sm text-gray-600 mb-4">
-        Share your suggestions or issues to help improve OweGo.
+        We are still in development. Share your suggestions or issues to help improve OweGo.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
