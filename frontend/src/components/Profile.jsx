@@ -272,7 +272,7 @@ function Profile() {
               </h2>
               <div className="space-y-4">
                 <div
-                  className="bg-blue-50 p-4 rounded-lg cursor-pointer hover:bg-green-100"
+                  className="bg-blue-50 p-4 rounded-lg cursor-pointer hover:bg-blue-100"
                   onClick={() => navigate("/groupdetails")}
                 >
                   <h3 className="font-semibold text-blue-800">Groups</h3>

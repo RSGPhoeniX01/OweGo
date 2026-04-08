@@ -29,6 +29,7 @@ function GroupDetails() {
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
   const [isGroupSettled, setIsGroupSettled] = useState(false);
   const [settledStatusMap, setSettledStatusMap] = useState({});
+  const [isMembersPanelOpen, setIsMembersPanelOpen] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState(null);
   const handleEditGroupClick = (group) => {
@@ -384,35 +385,56 @@ function GroupDetails() {
             )}
 
             <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 overflow-x-hidden">
-              <div className="mb-6">
-                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                  <div className="w-full min-w-0">
-                    <AddMembers
-                      key={selectedGroup || 'group-members'}
-                      currentUsername=""
-                      selectedUsers={selectedUsers}
-                      onSelectedUsersChange={setSelectedUsers}
-                      label="Add Members"
-                      // helperText="Search and click users to add them to the selected group."
-                      excludedUsernames={members}
-                      showAdminChip={false}
-                    />
-                  </div>
-                  <button
-                    className={`w-full md:w-auto self-start md:self-end text-sm md:text-base px-3 md:px-4 py-2 rounded-lg cursor-pointer transition-colors ${
-                      selectedUsers.length > 0
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg md:text-xl font-semibold">Members</h2>
+                <button
+                  type="button"
+                  onClick={() => setIsMembersPanelOpen((prev) => !prev)}
+                  className="text-gray-600 focus:outline-none text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
+                  title="Toggle members panel"
+                >
+                  <img
+                    src={open_slider}
+                    alt="Toggle Members Panel"
+                    className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                      isMembersPanelOpen ? '-rotate-90' : 'rotate-90'
                     }`}
-                    onClick={handleAddSelectedUsers}
-                    disabled={selectedUsers.length === 0}
-                  >
-                    Add Selected ({selectedUsers.length})
-                  </button>
-                </div>
+                  />
+                </button>
               </div>
 
-              <h2 className="text-lg md:text-xl font-semibold mb-4">Members</h2>
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isMembersPanelOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                  <div className="mb-6">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                      <div className="w-full min-w-0">
+                        <AddMembers
+                          key={selectedGroup || 'group-members'}
+                          currentUsername=""
+                          selectedUsers={selectedUsers}
+                          onSelectedUsersChange={setSelectedUsers}
+                          label="Add Members"
+                          // helperText="Search and click users to add them to the selected group."
+                          excludedUsernames={members}
+                          showAdminChip={false}
+                        />
+                      </div>
+                      <button
+                        className={`w-full md:w-auto self-start md:self-end text-sm md:text-base px-3 md:px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedUsers.length > 0
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                        onClick={handleAddSelectedUsers}
+                        disabled={selectedUsers.length === 0}
+                      >
+                        Add Selected ({selectedUsers.length})
+                      </button>
+                    </div>
+                  </div>
 
               {/* Selected Users
               {selectedUsers.length > 0 && (
@@ -441,38 +463,39 @@ function GroupDetails() {
                 </div>
               )} */}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                {members.map((member, index) => {
-                  const isCreator =
-                    groups.find((g) => g.name === selectedGroup)?.creator ===
-                    member;
-                  return (
-                    <div
-                      key={index}
-                      className={`flex items-center space-x-2 p-2.5 md:p-3 rounded-lg min-w-0 ${
-                        isCreator
-                          ? "bg-yellow-50 border border-yellow-300"
-                          : "bg-gray-50"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold ${
-                          isCreator ? "bg-yellow-500" : "bg-blue-500"
-                        }`}
-                      >
-                        {member.charAt(0)}
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-medium text-sm truncate">{member}</span>
-                        {isCreator && (
-                          <span className="text-xs text-yellow-600 font-medium">
-                            Admin
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    {members.map((member, index) => {
+                      const isCreator =
+                        groups.find((g) => g.name === selectedGroup)?.creator ===
+                        member;
+                      return (
+                        <div
+                          key={index}
+                          className={`flex items-center space-x-2 p-2.5 md:p-3 rounded-lg min-w-0 ${
+                            isCreator
+                              ? "bg-yellow-50 border border-yellow-300"
+                              : "bg-gray-50"
+                          }`}
+                        >
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold ${
+                              isCreator ? "bg-yellow-500" : "bg-blue-500"
+                            }`}
+                          >
+                            {member.charAt(0)}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-medium text-sm truncate">{member}</span>
+                            {isCreator && (
+                              <span className="text-xs text-yellow-600 font-medium">
+                                Admin
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
               </div>
             </div>
 
