@@ -10,10 +10,12 @@ import Features from './components/Features'
 import GroupDetails from './components/GroupDetails'
 import CreateGroup from './components/CreateGroup'
 import Feedback from './components/Feedback'
+import NotificationBar from './components/NotificationBar'
 
 function App() {
   return (
     <div>
+      <NotificationBar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />

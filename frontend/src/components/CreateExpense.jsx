@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import { showNotification } from '../notifications';
 
 function CreateExpense({ groupId, isOpen, onClose, onExpenseCreated }) {
   const [newExpense, setNewExpense] = useState({
@@ -80,15 +81,15 @@ function CreateExpense({ groupId, isOpen, onClose, onExpenseCreated }) {
       });
 
       if (res.data.success) {
-        alert('Expense added successfully');
+        showNotification('Expense added successfully', 'success');
         onExpenseCreated();
         handleClose();
       } else {
-        alert(res.data.message || 'Failed to add expense');
+        showNotification(res.data.message || 'Failed to add expense', 'error');
       }
     } catch (error) {
       console.error('Error adding expense:', error);
-      alert('An error occurred. Please try again.');
+      showNotification('An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

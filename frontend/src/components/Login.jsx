@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Link, useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import Header from './Header';
+import { showNotification } from '../notifications';
 
 function Login() {
   const [form, setForm] = useState({ usernameOrEmail: '', password: '' });
@@ -19,7 +20,7 @@ function Login() {
         .then(() => navigate('/dashboard'))
         .catch(() => {
           localStorage.removeItem('token');
-          alert('Session expired. Please log in again.');
+          showNotification('Session expired. Please log in again.', 'error');
           navigate('/login')
         });
     }
@@ -49,6 +50,7 @@ function Login() {
       }
 
       setSuccess('Login successful! Redirecting...');
+      showNotification('Login successful', 'success');
       setTimeout(() => navigate('/dashboard'), 1200);
     } catch (err) {
       setError(
@@ -89,7 +91,7 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors duration-200 disabled:opacity-60"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors cursor-pointer duration-200 disabled:opacity-60"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>

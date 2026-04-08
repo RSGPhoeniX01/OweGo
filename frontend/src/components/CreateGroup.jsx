@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import AddMembers from './AddMembers';
+import { showNotification } from '../notifications';
 
 function CreateGroup() {
   const navigate = useNavigate();
@@ -49,14 +50,14 @@ function CreateGroup() {
       });
 
       if (res.data.success) {
-        alert('Group created successfully');
+        showNotification('Group created successfully', 'success');
         navigate('/groupdetails');
       } else {
-        alert(res.data.message || 'Failed to create group');
+        showNotification(res.data.message || 'Failed to create group', 'error');
       }
     } catch (error) {
       console.error('Error creating group:', error);
-      alert('An error occurred. Please try again.');
+      showNotification('An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

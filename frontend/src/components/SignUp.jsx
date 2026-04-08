@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api'; 
 import Header from './Header';
+import { showNotification } from '../notifications';
 function SignUp() {
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
@@ -17,7 +18,7 @@ function SignUp() {
         .then(() => navigate('/dashboard'))
         .catch(() => {
           localStorage.removeItem('token');
-          alert('Session expired. Please log in again.');
+          showNotification('Session expired. Please log in again.', 'error');
           navigate('/login')
         });
     }
@@ -53,6 +54,7 @@ function SignUp() {
       localStorage.setItem('token', data.token);
     }
     setSuccess('Signup successful! Redirecting...');
+    showNotification('Signup successful', 'success');
     setForm({ username: '', email: '', password: '' });
     setTimeout(() => navigate('/dashboard'), 1200);
   } catch (err) {
@@ -104,7 +106,7 @@ function SignUp() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg transition-colors duration-200 disabled:opacity-60"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg cursor-pointer transition-colors duration-200 disabled:opacity-60"
           >
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>

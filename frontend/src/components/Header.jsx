@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import { showNotification } from '../notifications';
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -21,6 +22,7 @@ export default function Header() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
+        showNotification('Logged out successfully', 'success');
         navigate('/login');
     };
 

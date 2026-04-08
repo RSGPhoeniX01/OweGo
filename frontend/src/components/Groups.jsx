@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { showNotification } from '../notifications';
 
 function Groups() {
   const [allGroups, setAllGroups] = useState([]);
@@ -12,7 +13,7 @@ function Groups() {
     const token = localStorage.getItem('token');
     
     if (!token) {
-      alert('Please log in to access groups.');
+      showNotification('Please log in to access groups.', 'error');
       navigate('/login');
       return;
     }
@@ -46,6 +47,30 @@ function Groups() {
         console.error('Error fetching groups:', err);
         setLoading(false);
       });
+
+    const intervalId = setInterval(() => {
+      api.get('/group/allgroups')
+        .then((res) => {
+          const data = res.data;
+          if (!data.success) return;
+          api.post('/settleup/multi-status', { groupIds: data.groups.map(g => g._id) })
+            .then(res2 => {
+              if (res2.data && res2.data.success) {
+                setSettledStatusMap(res2.data.status);
+                const activeGroups = data.groups.filter(group => !res2.data.status[group._id]);
+                setAllGroups(activeGroups);
+              } else {
+                setAllGroups(data.groups);
+              }
+            })
+            .catch(() => {
+              setAllGroups(data.groups);
+            });
+        })
+        .catch(() => {});
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, [navigate]);
 
   const handleGroupClick = (groupId) => {

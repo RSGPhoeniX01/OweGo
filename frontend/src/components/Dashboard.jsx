@@ -9,6 +9,7 @@ import Tracking from './Tracking';
 import Feedback from './Feedback';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
+import { showNotification } from '../notifications';
 function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
@@ -54,7 +55,7 @@ useEffect(() => {
   const token = localStorage.getItem('token');
   
   if (!token) {
-    alert('Please log in to access the dashboard.');
+    showNotification('Please log in to access the dashboard.', 'error');
     navigate('/login');
     return;
   }
@@ -62,7 +63,7 @@ useEffect(() => {
   api.get('/user/profile')
     .catch(() => {
       localStorage.removeItem('token');
-      alert('Session expired. Please log in again.');
+      showNotification('Session expired. Please log in again.', 'error');
       navigate('/login');
     });
 

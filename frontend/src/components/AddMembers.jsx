@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import api from '../api';
+import { showNotification } from '../notifications';
 
 function AddMembers({
   currentUsername = '',
@@ -10,6 +11,7 @@ function AddMembers({
   onSelectionChange,
   onAddMembers,
   addButtonLabel = 'Add',
+  canAddMembers = true,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -17,6 +19,7 @@ function AddMembers({
   const [isAdding, setIsAdding] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const containerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -33,6 +36,39 @@ function AddMembers({
       document.removeEventListener('mousedown', handleOutsideClick);
     };
   }, []);
+
+  useEffect(() => {
+    const shouldShowDropdown = isInputFocused && searchQuery.trim().length >= 2;
+    if (!shouldShowDropdown) return;
+
+    const updateDropdownPosition = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const belowTop = rect.bottom + 4;
+      const spaceBelow = window.innerHeight - belowTop - 8;
+      const spaceAbove = rect.top - 8;
+      const showAbove = spaceBelow < 180 && spaceAbove > spaceBelow;
+      const availableHeight = showAbove ? spaceAbove - 4 : spaceBelow;
+      const maxHeight = Math.max(120, Math.min(360, availableHeight));
+      const top = showAbove ? Math.max(8, rect.top - maxHeight - 4) : belowTop;
+      setDropdownStyle({
+        position: 'fixed',
+        left: rect.left,
+        top,
+        width: rect.width,
+        zIndex: 9999,
+        maxHeight,
+      });
+    };
+
+    updateDropdownPosition();
+    window.addEventListener('resize', updateDropdownPosition);
+    window.addEventListener('scroll', updateDropdownPosition, true);
+    return () => {
+      window.removeEventListener('resize', updateDropdownPosition);
+      window.removeEventListener('scroll', updateDropdownPosition, true);
+    };
+  }, [isInputFocused, searchQuery]);
 
   const updateSelectedUsers = (updater) => {
     setSelectedUsers((prev) => {
@@ -99,11 +135,16 @@ function AddMembers({
 
   const handleAddMembersClick = async () => {
     if (!onAddMembers || selectedUsers.length === 0 || isAdding) return;
+    if (!canAddMembers) {
+      showNotification('Only admin can add new members', 'error');
+      return;
+    }
 
     setIsAdding(true);
     try {
       const shouldClear = await onAddMembers(selectedUsers);
       if (shouldClear !== false) {
+        showNotification('Members added successfully', 'success');
         updateSelectedUsers([]);
         setSearchQuery('');
         setSearchResults([]);
@@ -164,7 +205,7 @@ function AddMembers({
         </div>
 
         {isInputFocused && searchQuery.trim().length >= 2 && searchResults.length > 0 && (
-          <div className="absolute left-0 mt-1 w-full bg-white border rounded shadow z-10 max-h-48 overflow-y-auto">
+          <div style={dropdownStyle} className="bg-white border rounded shadow overflow-y-auto overflow-x-auto">
             {searchResults.map((user) => {
               const isSelected = selectedUsers.some(
                 (selected) => selected._id === user._id
@@ -189,7 +230,7 @@ function AddMembers({
           </div>
         )}
         {isInputFocused && searchQuery.trim().length >= 2 && isSearching && (
-          <div className="absolute left-0 mt-1 w-full bg-white border rounded shadow z-10 px-3 py-2 text-sm text-gray-500">
+          <div style={dropdownStyle} className="bg-white border rounded shadow px-3 py-2 text-sm text-gray-500 overflow-y-auto">
             Searching...
           </div>
         )}

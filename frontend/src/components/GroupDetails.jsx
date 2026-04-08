@@ -12,6 +12,7 @@ import EditGroupModal from "./EditGroupModal";
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 import AddMembers from "./AddMembers";
+import { showNotification } from "../notifications";
 function GroupDetails() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -54,12 +55,13 @@ function GroupDetails() {
         }
         setIsEditModalOpen(false);
         setGroupBeingEdited(null);
+        showNotification("Group updated", "success");
       } else {
-        alert("Failed to update group.");
+        showNotification("Failed to update group.", "error");
       }
     } catch (error) {
       console.error("Update group failed:", error);
-      alert("Something went wrong while updating the group.");
+      showNotification("Something went wrong while updating the group.", "error");
     }
   };
 
@@ -78,14 +80,14 @@ function GroupDetails() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Please log in to access group details.");
+      showNotification("Please log in to access group details.", "error");
       navigate("/login");
       return;
     }
 
     api.get("/user/profile").catch(() => {
       localStorage.removeItem("token");
-      alert("Session expired. Please log in again.");
+      showNotification("Session expired. Please log in again.", "error");
       navigate("/login");
     });
 
@@ -134,7 +136,7 @@ function GroupDetails() {
       })
       .catch((err) => {
         console.error("Error fetching groups:", err);
-        alert("Could not load groups. Please try again later.");
+        showNotification("Could not load groups. Please try again later.", "error");
       });
 
     // Check if group is settled when group changes
@@ -213,7 +215,7 @@ function GroupDetails() {
       return false;
     } catch (err) {
       console.error("Add members error:", err);
-      alert("Failed to add members. Please try again.");
+      showNotification("Failed to add members. Please try again.", "error");
       return false;
     }
   };
@@ -250,13 +252,13 @@ function GroupDetails() {
     });
 
     if (res.data.success) {
-      alert("Expense updated");
+      showNotification("Expense updated", "success");
       fetchExpenses(groupId);
       setIsEditExpenseModalOpen(false);
     }
   } catch (err) {
     console.error("Error updating:", err);
-    alert("Update failed");
+    showNotification("Update failed", "error");
   }
 };
   const deleteExpense = async (expenseId) => {
@@ -266,22 +268,52 @@ function GroupDetails() {
     try {
       const res = await api.delete(`/expense/${expenseId}/deleteexpense`);
       if (res.data.success) {
-        alert("Expense deleted successfully");
+        showNotification("Expense deleted successfully", "success");
         // Refresh the expense list
         const group = groups.find((g) => g.name === selectedGroup);
         if (group) fetchExpenses(group.id);
       } else {
-        alert(res.data.message || "Failed to delete expense");
+        showNotification(res.data.message || "Failed to delete expense", "error");
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Error deleting expense");
+      showNotification("Error deleting expense", "error");
     }
   };
 
   const selectedGroupObj = groups.find((g) => g.name === selectedGroup);
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
+  const canAddMembers = selectedGroupObj?.creatorId === userId;
+
+  useEffect(() => {
+    if (!groupId) return;
+    const intervalId = setInterval(() => {
+      fetchExpenses(groupId);
+      api
+        .get("/group/allgroups")
+        .then((res) => {
+          const data = res.data;
+          if (!data.success) return;
+          const fetchedGroups = data.groups.map((group) => ({
+            id: group._id,
+            name: group.name,
+            members: group.members.map((m) => m.username),
+            creator: group.creator?.username,
+            creatorId: group.creator?._id,
+          }));
+          setGroups(fetchedGroups);
+          const current = fetchedGroups.find((g) => g.id === groupId);
+          if (current) {
+            setMembers(current.members);
+            setSelectedGroup(current.name);
+          }
+        })
+        .catch(() => {});
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [groupId]);
+
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Header />
@@ -415,6 +447,7 @@ function GroupDetails() {
                         showAdminChip={false}
                         onAddMembers={handleAddMembersToGroup}
                         addButtonLabel="Add"
+                        canAddMembers={canAddMembers}
                       />
                     </div>
                   </div>
