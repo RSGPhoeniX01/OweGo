@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api";
 import Header from "./Header";
@@ -27,11 +27,19 @@ function GroupDetails() {
   const [isCreateExpenseModalOpen, setIsCreateExpenseModalOpen] =
     useState(false);
   const [isSettleUpOpen, setIsSettleUpOpen] = useState(false);
-  const [isGroupSettled, setIsGroupSettled] = useState(false);
   const [settledStatusMap, setSettledStatusMap] = useState({});
+  const [settleProgressMap, setSettleProgressMap] = useState({});
+  const [userSettledMap, setUserSettledMap] = useState({});
+  const [selectedGroupSettleStatus, setSelectedGroupSettleStatus] = useState({
+    userSettled: false,
+    allSettled: false,
+    settledCount: 0,
+    totalMembers: 0,
+  });
   const [isMembersPanelOpen, setIsMembersPanelOpen] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState(null);
+  const prevSettledStatusRef = useRef({});
   const handleEditGroupClick = (group) => {
     setGroupBeingEdited(group);
     setIsEditModalOpen(true);
@@ -76,6 +84,85 @@ function GroupDetails() {
     userId = "";
   }
 
+  const mapGroupsFromResponse = (groupData) => {
+    return groupData.map((group) => ({
+      id: group._id,
+      name: group.name,
+      members: group.members.map((m) => m.username),
+      creator: group.creator?.username,
+      creatorId: group.creator?._id,
+    }));
+  };
+
+  const fetchGroupsAndSettleProgress = async (showSettleNotifications = false) => {
+    const groupRes = await api.get("/group/allgroups");
+    const data = groupRes.data;
+    if (!data.success) {
+      throw new Error(data.message || "Failed to fetch groups");
+    }
+
+    const fetchedGroups = mapGroupsFromResponse(data.groups);
+    const statusRes = await api.post("/settleup/multi-status", {
+      groupIds: data.groups.map((g) => g._id),
+    });
+
+    if (statusRes.data?.success) {
+      const nextStatusMap = statusRes.data.status || {};
+      const nextProgressMap = statusRes.data.progress || {};
+      const nextUserSettledMap = statusRes.data.userSettled || {};
+
+      if (showSettleNotifications) {
+        Object.entries(nextStatusMap).forEach(([id, isSettled]) => {
+          if (isSettled && !prevSettledStatusRef.current[id]) {
+            const settledGroup = fetchedGroups.find((g) => g.id === id);
+            const groupName = settledGroup?.name || "A group";
+            showNotification(`${groupName} has been settled and moved to Tracking.`, "success");
+            if (routeGroupId === id) {
+              navigate("/dashboard?view=settlements");
+            }
+          }
+        });
+      }
+
+      prevSettledStatusRef.current = nextStatusMap;
+      setSettledStatusMap(nextStatusMap);
+      setSettleProgressMap(nextProgressMap);
+      setUserSettledMap(nextUserSettledMap);
+
+      const activeGroups = fetchedGroups.filter((group) => !nextStatusMap[group.id]);
+      setGroups(activeGroups);
+
+      let initialGroup = null;
+      if (routeGroupId) {
+        initialGroup = activeGroups.find((g) => g.id === routeGroupId);
+      }
+      if (!initialGroup && activeGroups.length > 0) {
+        initialGroup = activeGroups[0];
+      }
+
+      if (initialGroup) {
+        setSelectedGroup(initialGroup.name);
+        setMembers(initialGroup.members);
+        fetchExpenses(initialGroup.id);
+        setSelectedGroupSettleStatus({
+          userSettled: Boolean(nextUserSettledMap[initialGroup.id]),
+          allSettled: Boolean(nextStatusMap[initialGroup.id]),
+          settledCount: nextProgressMap[initialGroup.id]?.settledCount || 0,
+          totalMembers:
+            nextProgressMap[initialGroup.id]?.totalMembers || initialGroup.members.length,
+        });
+      } else {
+        setSelectedGroup("");
+        setMembers([]);
+        setExpenses([]);
+      }
+
+      return;
+    }
+
+    setGroups(fetchedGroups);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -91,67 +178,11 @@ function GroupDetails() {
       navigate("/login");
     });
 
-    api
-      .get("/group/allgroups")
-      .then((res) => {
-        const data = res.data;
-        if (!data.success)
-          throw new Error(data.message || "Failed to fetch groups");
-
-        const fetchedGroups = data.groups.map((group) => ({
-          id: group._id,
-          name: group.name,
-          members: group.members.map((m) => m.username),
-          creator: group.creator?.username,
-          creatorId: group.creator?._id,
-        }));
-        setGroups(fetchedGroups);
-        // Fetch settle status for all groups
-        api
-          .post("/settleup/multi-status", {
-            groupIds: data.groups.map((g) => g._id),
-          })
-          .then((res2) => {
-            if (res2.data && res2.data.success) {
-              setSettledStatusMap(res2.data.status);
-              // Filter out settled groups - only show active groups
-              const activeGroups = fetchedGroups.filter(
-                (group) => !res2.data.status[group.id]
-              );
-              setGroups(activeGroups);
-            }
-          });
-        let initialGroup = null;
-        if (routeGroupId) {
-          initialGroup = data.groups.find((g) => g._id === routeGroupId);
-        }
-        if (!initialGroup && data.groups.length > 0) {
-          initialGroup = data.groups[0];
-        }
-        if (initialGroup) {
-          setSelectedGroup(initialGroup.name);
-          setMembers(initialGroup.members.map((m) => m.username));
-          fetchExpenses(initialGroup._id);
-        }
-      })
+    fetchGroupsAndSettleProgress(false)
       .catch((err) => {
         console.error("Error fetching groups:", err);
         showNotification("Could not load groups. Please try again later.", "error");
       });
-
-    // Check if group is settled when group changes
-    if (routeGroupId) {
-      api
-        .get(`/settleup/${routeGroupId}/status`)
-        .then((res) => {
-          if (res.data && res.data.allSettled) {
-            setIsGroupSettled(true);
-          } else {
-            setIsGroupSettled(false);
-          }
-        })
-        .catch(() => setIsGroupSettled(false));
-    }
   }, [navigate, routeGroupId]);
 
   const fetchExpenses = (groupId) => {
@@ -175,6 +206,12 @@ function GroupDetails() {
     if (group) {
       setSelectedGroup(group.name);
       setMembers(group.members);
+      setSelectedGroupSettleStatus({
+        userSettled: Boolean(userSettledMap[group.id]),
+        allSettled: Boolean(settledStatusMap[group.id]),
+        settledCount: settleProgressMap[group.id]?.settledCount || 0,
+        totalMembers: settleProgressMap[group.id]?.totalMembers || group.members.length,
+      });
       fetchExpenses(group.id);
       setSearchParams({ groupId: group.id });
       setSidebarOpen(false);
@@ -193,6 +230,11 @@ function GroupDetails() {
 
   const handleAddMembersToGroup = async (usersToAdd) => {
     if (usersToAdd.length === 0) return false;
+
+    if (selectedGroupSettleStatus.userSettled || selectedGroupSettleStatus.allSettled) {
+      showNotification("You already settled this group. Adding members is disabled.", "error");
+      return false;
+    }
 
     const group = groups.find((g) => g.name === selectedGroup);
     if (!group) return false;
@@ -221,6 +263,10 @@ function GroupDetails() {
   };
 
   const handleAddExpense = () => {
+    if (selectedGroupSettleStatus.userSettled || selectedGroupSettleStatus.allSettled) {
+      showNotification("You already settled this group. Adding expenses is disabled.", "error");
+      return;
+    }
     setIsCreateExpenseModalOpen(true);
   };
 
@@ -284,35 +330,41 @@ function GroupDetails() {
   const selectedGroupObj = groups.find((g) => g.name === selectedGroup);
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
-  const canAddMembers = selectedGroupObj?.creatorId === userId;
+  const selectedGroupProgress = groupId
+    ? settleProgressMap[groupId] || { settledCount: 0, totalMembers: groupMembers.length }
+    : { settledCount: 0, totalMembers: groupMembers.length };
+  const hasUserSettledInGroup = groupId ? Boolean(userSettledMap[groupId]) : false;
+  const isGroupSettled = groupId ? Boolean(settledStatusMap[groupId]) : false;
+  const canAddMembers =
+    selectedGroupObj?.creatorId === userId &&
+    !hasUserSettledInGroup &&
+    !isGroupSettled;
 
   useEffect(() => {
     if (!groupId) return;
     const intervalId = setInterval(() => {
       fetchExpenses(groupId);
-      api
-        .get("/group/allgroups")
-        .then((res) => {
-          const data = res.data;
-          if (!data.success) return;
-          const fetchedGroups = data.groups.map((group) => ({
-            id: group._id,
-            name: group.name,
-            members: group.members.map((m) => m.username),
-            creator: group.creator?.username,
-            creatorId: group.creator?._id,
-          }));
-          setGroups(fetchedGroups);
-          const current = fetchedGroups.find((g) => g.id === groupId);
-          if (current) {
-            setMembers(current.members);
-            setSelectedGroup(current.name);
-          }
-        })
-        .catch(() => {});
+      fetchGroupsAndSettleProgress(true).catch(() => {});
     }, 1000);
     return () => clearInterval(intervalId);
   }, [groupId]);
+
+  useEffect(() => {
+    if (!groupId) return;
+    setSelectedGroupSettleStatus({
+      userSettled: hasUserSettledInGroup,
+      allSettled: isGroupSettled,
+      settledCount: selectedGroupProgress.settledCount || 0,
+      totalMembers: selectedGroupProgress.totalMembers || groupMembers.length,
+    });
+  }, [
+    groupId,
+    hasUserSettledInGroup,
+    isGroupSettled,
+    selectedGroupProgress.settledCount,
+    selectedGroupProgress.totalMembers,
+    groupMembers.length,
+  ]);
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
@@ -352,13 +404,20 @@ function GroupDetails() {
                         className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
                           selectedGroup === group.name
                             ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
-                            : settledStatusMap[group.id]
-                            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                            : settleProgressMap[group.id]?.settledCount > 0
+                            ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500"
                             : "hover:bg-gray-100"
                         }`}
                         onClick={() => handleGroupSelect(group.name)}
                       >
-                        <span className="flex-1 truncate">{group.name}</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block truncate">{group.name}</span>
+                          {settleProgressMap[group.id]?.settledCount > 0 && (
+                            <span className="block text-xs font-medium">
+                              {settleProgressMap[group.id].settledCount}/{settleProgressMap[group.id].totalMembers} settled
+                            </span>
+                          )}
+                        </div>
 
                         {userId === group.creatorId && (
                           <button
@@ -399,7 +458,13 @@ function GroupDetails() {
         <div className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-56 md:ml-64' : 'ml-10 md:ml-12'}`}>
           <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 break-words">
+              <h1
+                className={`text-2xl md:text-3xl font-bold break-words ${
+                  selectedGroupProgress.settledCount > 0 && !isGroupSettled
+                    ? "text-yellow-700"
+                    : "text-gray-800"
+                }`}
+              >
                 {selectedGroup}
               </h1>
             </div>
@@ -412,6 +477,15 @@ function GroupDetails() {
                 </span>
               </div>
             )}
+            {!isGroupSettled &&
+              selectedGroupProgress.totalMembers > 0 &&
+              selectedGroupProgress.settledCount > 0 && (
+                <div className="mb-6 p-4 rounded-lg bg-yellow-100 border border-yellow-300 flex items-center justify-center">
+                  <span className="text-yellow-800 font-bold text-lg">
+                    {selectedGroupProgress.settledCount}/{selectedGroupProgress.totalMembers} members settled
+                  </span>
+                </div>
+              )}
 
             <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 overflow-x-hidden">
               <div className="flex items-center justify-between mb-4">
@@ -438,7 +512,11 @@ function GroupDetails() {
                 }`}
               >
                   <div className="mb-6">
-                    <div className="w-full min-w-0">
+                    <div
+                      className={`w-full min-w-0 ${
+                        canAddMembers ? "" : "opacity-60 pointer-events-none"
+                      }`}
+                    >
                       <AddMembers
                         key={selectedGroup || 'group-members'}
                         currentUsername=""
@@ -450,6 +528,13 @@ function GroupDetails() {
                         canAddMembers={canAddMembers}
                       />
                     </div>
+                    {!canAddMembers && (
+                      <p className="text-xs text-yellow-700 mt-2">
+                        {hasUserSettledInGroup
+                          ? "You have settled this group. Add members is disabled for you."
+                          : "Only the group admin can add members."}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -494,15 +579,27 @@ function GroupDetails() {
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleAddExpense}
-                    className="bg-green-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-green-700 cursor-pointer transition-colors w-full sm:w-auto"
+                    disabled={hasUserSettledInGroup || isGroupSettled}
+                    className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
+                      hasUserSettledInGroup || isGroupSettled
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
+                    }`}
                   >
-                    Add Expense
+                    {hasUserSettledInGroup ? "Expense Locked" : "Add Expense"}
                   </button>
                   <button
-                    onClick={() => setIsSettleUpOpen(true)}
-                    className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer transition-colors w-full sm:w-auto"
+                    onClick={() => {
+                      if (!isGroupSettled && !hasUserSettledInGroup) setIsSettleUpOpen(true);
+                    }}
+                    disabled={isGroupSettled || hasUserSettledInGroup}
+                    className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
+                      isGroupSettled || hasUserSettledInGroup
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                    }`}
                   >
-                    Settle Up
+                    {isGroupSettled ? "Group Settled" : hasUserSettledInGroup ? "Settled Up" : "Settle Up"}
                   </button>
                 </div>
               </div>

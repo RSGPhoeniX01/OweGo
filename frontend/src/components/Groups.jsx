@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { showNotification } from '../notifications';
@@ -6,8 +6,43 @@ import { showNotification } from '../notifications';
 function Groups() {
   const [allGroups, setAllGroups] = useState([]);
   const [settledStatusMap, setSettledStatusMap] = useState({});
+  const [settleProgressMap, setSettleProgressMap] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const prevSettledStatusRef = useRef({});
+
+  const fetchGroupsAndStatus = async (showSettleNotifications = false) => {
+    const res = await api.get('/group/allgroups');
+    const data = res.data;
+    if (!data.success) throw new Error(data.message || 'Failed to fetch groups');
+
+    const groupIds = data.groups.map((g) => g._id);
+    const statusRes = await api.post('/settleup/multi-status', { groupIds });
+
+    if (statusRes.data && statusRes.data.success) {
+      const nextStatus = statusRes.data.status || {};
+      const nextProgress = statusRes.data.progress || {};
+      const activeGroups = data.groups.filter((group) => !nextStatus[group._id]);
+
+      if (showSettleNotifications) {
+        Object.entries(nextStatus).forEach(([groupId, isSettled]) => {
+          if (isSettled && !prevSettledStatusRef.current[groupId]) {
+            const settledGroup = data.groups.find((group) => group._id === groupId);
+            const groupName = settledGroup?.name || 'A group';
+            showNotification(`${groupName} has been settled and moved to Tracking.`, 'success');
+          }
+        });
+      }
+
+      prevSettledStatusRef.current = nextStatus;
+      setSettledStatusMap(nextStatus);
+      setSettleProgressMap(nextProgress);
+      setAllGroups(activeGroups);
+      return;
+    }
+
+    setAllGroups(data.groups);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -19,55 +54,16 @@ function Groups() {
     }
 
     setLoading(true);
-    api.get('/group/allgroups')
-      .then((res) => {
-        const data = res.data;
-        if (!data.success) throw new Error(data.message || 'Failed to fetch groups');
-        
-        // Fetch settle status for all groups
-        api.post('/settleup/multi-status', { groupIds: data.groups.map(g => g._id) })
-          .then(res2 => {
-            if (res2.data && res2.data.success) {
-              setSettledStatusMap(res2.data.status);
-              // Filter out settled groups - only show active groups
-              const activeGroups = data.groups.filter(group => !res2.data.status[group._id]);
-              setAllGroups(activeGroups);
-            } else {
-              setAllGroups(data.groups);
-            }
-            setLoading(false);
-          })
-          .catch(err => {
-            console.error('Settle status error:', err);
-            setAllGroups(data.groups);
-            setLoading(false);
-          });
-      })
+    fetchGroupsAndStatus(false)
       .catch((err) => {
         console.error('Error fetching groups:', err);
+      })
+      .finally(() => {
         setLoading(false);
       });
 
     const intervalId = setInterval(() => {
-      api.get('/group/allgroups')
-        .then((res) => {
-          const data = res.data;
-          if (!data.success) return;
-          api.post('/settleup/multi-status', { groupIds: data.groups.map(g => g._id) })
-            .then(res2 => {
-              if (res2.data && res2.data.success) {
-                setSettledStatusMap(res2.data.status);
-                const activeGroups = data.groups.filter(group => !res2.data.status[group._id]);
-                setAllGroups(activeGroups);
-              } else {
-                setAllGroups(data.groups);
-              }
-            })
-            .catch(() => {
-              setAllGroups(data.groups);
-            });
-        })
-        .catch(() => {});
+      fetchGroupsAndStatus(true).catch(() => {});
     }, 1000);
 
     return () => clearInterval(intervalId);
@@ -114,10 +110,20 @@ function Groups() {
             <p className="text-gray-400 text-sm mt-2">Create your first group to get started!</p>
           </div>
         ) : (
-          allGroups.map((group) => (
-            <div 
-              key={group._id} 
-              className={`border border-gray-300 rounded-xl p-4 transition-colors cursor-pointer ${settledStatusMap[group._id] ? 'bg-green-100 text-green-800 border-green-400' : 'hover:bg-gray-50 bg-white'}`}
+          allGroups.map((group) => {
+            const progress = settleProgressMap[group._id] || { settledCount: 0, totalMembers: group.members?.length || 0 };
+            const isPartiallySettled = progress.settledCount > 0 && progress.settledCount < progress.totalMembers;
+
+            return (
+            <div
+              key={group._id}
+              className={`border rounded-xl p-4 transition-colors cursor-pointer ${
+                isPartiallySettled
+                  ? 'bg-yellow-100 border-yellow-400'
+                  : settledStatusMap[group._id]
+                  ? 'bg-green-100 text-green-800 border-green-400'
+                  : 'border-gray-300 hover:bg-gray-50 bg-white'
+              }`}
               onClick={() => handleGroupClick(group._id)}
             >
               <div className="flex items-center justify-between mb-3">
@@ -133,11 +139,16 @@ function Groups() {
                 <span>Created: {new Date(group.createdAt).toLocaleDateString()}</span>
                 <span className="text-blue-600 font-medium">Click to view details →</span>
               </div>
+              {progress.totalMembers > 0 && progress.settledCount > 0 && (
+                <div className="mt-2 text-yellow-700 font-semibold text-xs">
+                  {progress.settledCount}/{progress.totalMembers} settled
+                </div>
+              )}
               {settledStatusMap[group._id] && (
                 <div className="mt-2 text-green-700 font-semibold text-xs">Settled ✓</div>
               )}
             </div>
-          ))
+          )})
         )}
         </div>
       </div>
