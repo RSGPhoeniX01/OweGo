@@ -25,3 +25,5 @@
 /frontend/*.njsproj
 /frontend/*.sln
 /frontend/*.sw?
+
+/.vscode

@@ -18,6 +18,7 @@ function GroupDetails() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const routeGroupId = searchParams.get("groupId");
+  const [isGroupDetailsLoading, setIsGroupDetailsLoading] = useState(true);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [groups, setGroups] = useState([]);
   const [members, setMembers] = useState([]);
@@ -40,6 +41,30 @@ function GroupDetails() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState(null);
   const prevSettledStatusRef = useRef({});
+  const selectionRequestRef = useRef(0);
+
+  const resetSelectedGroupState = () => {
+    setSelectedGroup("");
+    setMembers([]);
+    setExpenses([]);
+    setSelectedExpense(null);
+    setIsExpenseModalOpen(false);
+    setIsCreateExpenseModalOpen(false);
+    setIsSettleUpOpen(false);
+    setSelectedGroupSettleStatus({
+      userSettled: false,
+      allSettled: false,
+      settledCount: 0,
+      totalMembers: 0,
+    });
+  };
+
+  const startSelectionTransition = () => {
+    selectionRequestRef.current += 1;
+    setIsGroupDetailsLoading(true);
+    resetSelectedGroupState();
+    return selectionRequestRef.current;
+  };
   const handleEditGroupClick = (group) => {
     setGroupBeingEdited(group);
     setIsEditModalOpen(true);
@@ -94,7 +119,10 @@ function GroupDetails() {
     }));
   };
 
-  const fetchGroupsAndSettleProgress = async (showSettleNotifications = false) => {
+  const fetchGroupsAndSettleProgress = async (
+    showSettleNotifications = false,
+    requestId = selectionRequestRef.current
+  ) => {
     const groupRes = await api.get("/group/allgroups");
     const data = groupRes.data;
     if (!data.success) {
@@ -132,6 +160,10 @@ function GroupDetails() {
       const activeGroups = fetchedGroups.filter((group) => !nextStatusMap[group.id]);
       setGroups(activeGroups);
 
+      if (requestId !== selectionRequestRef.current) {
+        return;
+      }
+
       let initialGroup = null;
       if (routeGroupId) {
         initialGroup = activeGroups.find((g) => g.id === routeGroupId);
@@ -143,7 +175,7 @@ function GroupDetails() {
       if (initialGroup) {
         setSelectedGroup(initialGroup.name);
         setMembers(initialGroup.members);
-        fetchExpenses(initialGroup.id);
+        await fetchExpenses(initialGroup.id, requestId);
         setSelectedGroupSettleStatus({
           userSettled: Boolean(nextUserSettledMap[initialGroup.id]),
           allSettled: Boolean(nextStatusMap[initialGroup.id]),
@@ -178,41 +210,47 @@ function GroupDetails() {
       navigate("/login");
     });
 
-    fetchGroupsAndSettleProgress(false)
+    const requestId = startSelectionTransition();
+
+    fetchGroupsAndSettleProgress(false, requestId)
       .catch((err) => {
         console.error("Error fetching groups:", err);
         showNotification("Could not load groups. Please try again later.", "error");
+      })
+      .finally(() => {
+        if (selectionRequestRef.current === requestId) {
+          setIsGroupDetailsLoading(false);
+        }
       });
   }, [navigate, routeGroupId]);
 
-  const fetchExpenses = (groupId) => {
-    api
+  const fetchExpenses = (groupId, requestId = selectionRequestRef.current) => {
+    return api
       .get(`/expense/${groupId}/expenses`)
       .then((res) => {
         const data = res.data;
         if (!data.success)
           throw new Error(data.message || "Failed to fetch expenses");
         console.log("Expenses data:", data.expenses); // Temporary debug log
+        if (requestId !== selectionRequestRef.current) {
+          return;
+        }
         setExpenses(data.expenses);
       })
       .catch((err) => {
+        if (requestId !== selectionRequestRef.current) {
+          return [];
+        }
         console.error("Error fetching expenses:", err);
         setExpenses([]);
+        return [];
       });
   };
 
   const handleGroupSelect = (groupName) => {
     const group = groups.find((g) => g.name === groupName);
     if (group) {
-      setSelectedGroup(group.name);
-      setMembers(group.members);
-      setSelectedGroupSettleStatus({
-        userSettled: Boolean(userSettledMap[group.id]),
-        allSettled: Boolean(settledStatusMap[group.id]),
-        settledCount: settleProgressMap[group.id]?.settledCount || 0,
-        totalMembers: settleProgressMap[group.id]?.totalMembers || group.members.length,
-      });
-      fetchExpenses(group.id);
+      startSelectionTransition();
       setSearchParams({ groupId: group.id });
       setSidebarOpen(false);
     }
@@ -456,6 +494,22 @@ function GroupDetails() {
           )}
         </div>
         <div className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-56 md:ml-64' : 'ml-10 md:ml-12'}`}>
+          {isGroupDetailsLoading ? (
+            <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
+              <div className="w-full max-w-4xl space-y-6">
+                <div className="border border-gray-300 rounded-xl p-4">
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
             <div className="flex justify-between items-center mb-6">
               <h1
@@ -650,6 +704,7 @@ function GroupDetails() {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
