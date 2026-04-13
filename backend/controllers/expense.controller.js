@@ -5,8 +5,9 @@ import SettleUp from '../models/settleup.model.js';
 // Add a new expense
 export const addExpense = async (req, res) => {
   try {
-    const { amount, type, description, splits } = req.body;
-    const user = req.user.userId;
+    const { user, amount, type, description, splits } = req.body;
+    const createdBy = req.user.userId;
+    const expenseUser = user || createdBy;
     const group = req.params.groupId;
 
     // Check if all users in splits exist in the group
@@ -23,8 +24,24 @@ export const addExpense = async (req, res) => {
       }
     }
 
+    const settleDoc = await SettleUp.findOne({ group }).sort({ createdAt: -1 });
+    if (settleDoc && !settleDoc.isSettled) {
+      const settledMemberIds = settleDoc.settledBy.map(id => id.toString());
+      const newInvolved = [expenseUser.toString(), createdBy.toString()];
+      if (splits) {
+         splits.forEach(s => newInvolved.push(s.member.toString()));
+      }
+      const hasSettledInvolved = newInvolved.some(id => settledMemberIds.includes(id));
+      if (hasSettledInvolved) {
+        return res.status(400).json({ success: false, message: 'Cannot include members who have already settled up in a new expense.' });
+      }
+    } else if (settleDoc && settleDoc.isSettled) {
+      return res.status(400).json({ success: false, message: 'Cannot add expense to a fully settled group.' });
+    }
+
     const expense = new Expense({
-      user,
+      user: expenseUser,
+      createdBy,
       group,
       amount,
       type,
@@ -62,6 +79,22 @@ export const updateExpense = async (req, res) => {
       }
     }
 
+    if (updateFields.splits || updateFields.user) {
+      const settleDoc = await SettleUp.findOne({ group: expense.group }).sort({ createdAt: -1 });
+      if (settleDoc && !settleDoc.isSettled) {
+        const settledMemberIds = settleDoc.settledBy.map(id => id.toString());
+        const newInvolved = [];
+        if (updateFields.user) newInvolved.push(updateFields.user.toString());
+        if (updateFields.splits) {
+          updateFields.splits.forEach(s => newInvolved.push(s.member.toString()));
+        }
+        const hasSettledNewInvolved = newInvolved.some(id => settledMemberIds.includes(id));
+        if (hasSettledNewInvolved) {
+          return res.status(400).json({ success: false, message: 'Cannot include members who have already settled up.' });
+        }
+      }
+    }
+
     Object.assign(expense, updateFields);
     await expense.save();
     res.status(200).json({ success: true, message: 'Expense updated', expense });
@@ -91,6 +124,7 @@ export const getExpense = async (req, res) => {
     const groupId = req.params.groupId;
     const expenses = await Expense.find({ group: groupId })
       .populate('user', 'username email')
+      .populate('createdBy', 'username email')
       .populate('splits.member', 'username email')
       .sort({ updatedAt: -1 }); // Use updatedAt instead of date
     // Remove group info from each expense
@@ -127,6 +161,7 @@ export const getAllExpense = async (req, res) => {
     // Find all expenses from those active groups
     const expenses = await Expense.find({ group: { $in: activeGroupIds } })
       .populate('user', 'username email')
+      .populate('createdBy', 'username email')
       .populate('group', 'name')
       .populate('splits.member', 'username email')
       .sort({ createdAt: -1 });
@@ -188,6 +223,7 @@ export const userExpense = async (req, res) => {
       ]
     })
       .populate('user', 'username email')
+      .populate('createdBy', 'username email')
       .populate('splits.member', 'username email')
       .sort({ createdAt: -1 });
 

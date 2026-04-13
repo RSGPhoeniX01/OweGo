@@ -58,16 +58,31 @@ function ExpenseDetails({ expense, isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Paid By */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-700 mb-2">Paid By</h4>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {expense.user?.username?.charAt(0) || 'U'}
+          {/* Paid By and Added By */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-700 mb-2">Paid By</h4>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {expense.user?.username?.charAt(0) || 'U'}
+                </div>
+                <div>
+                  <p className="font-medium">{expense.user?.username || 'Unknown'}</p>
+                  <p className="text-sm text-gray-500">{expense.user?.email || ''}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium">{expense.user?.username || 'Unknown'}</p>
-                <p className="text-sm text-gray-500">{expense.user?.email || ''}</p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-semibold text-gray-700 mb-2">Added By</h4>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {expense.createdBy?.username?.charAt(0) || expense.user?.username?.charAt(0) || 'U'}
+                </div>
+                <div>
+                  <p className="font-medium">{expense.createdBy?.username || expense.user?.username || 'Unknown'}</p>
+                  <p className="text-sm text-gray-500">{expense.createdBy?.email || expense.user?.email || ''}</p>
+                </div>
               </div>
             </div>
           </div>

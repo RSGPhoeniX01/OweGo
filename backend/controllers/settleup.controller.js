@@ -101,6 +101,7 @@ export const settleGroup = async (req, res) => {
       const statusMap = {};
       const progressMap = {};
       const userSettledMap = {};
+      const settledMembersMap = {};
 
       groups.forEach((group) => {
         const key = group._id.toString();
@@ -117,6 +118,7 @@ export const settleGroup = async (req, res) => {
           allSettled,
         };
         userSettledMap[key] = settledBySet.has(userId) || allSettled;
+        settledMembersMap[key] = allSettled ? group.members.map(id => id.toString()) : Array.from(settledBySet);
       });
 
       groupIds.forEach((id) => {
@@ -134,6 +136,9 @@ export const settleGroup = async (req, res) => {
         if (userSettledMap[key] === undefined) {
           userSettledMap[key] = false;
         }
+        if (settledMembersMap[key] === undefined) {
+          settledMembersMap[key] = [];
+        }
       });
 
       res.status(200).json({
@@ -141,6 +146,7 @@ export const settleGroup = async (req, res) => {
         status: statusMap,
         progress: progressMap,
         userSettled: userSettledMap,
+        settledMembers: settledMembersMap,
       });
     } catch (error) {
       console.error('Get multiple settle status error:', error);

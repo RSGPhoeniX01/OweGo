@@ -31,6 +31,7 @@ function GroupDetails() {
   const [settledStatusMap, setSettledStatusMap] = useState({});
   const [settleProgressMap, setSettleProgressMap] = useState({});
   const [userSettledMap, setUserSettledMap] = useState({});
+  const [settledMembersMap, setSettledMembersMap] = useState({});
   const [selectedGroupSettleStatus, setSelectedGroupSettleStatus] = useState({
     userSettled: false,
     allSettled: false,
@@ -138,6 +139,7 @@ function GroupDetails() {
       const nextStatusMap = statusRes.data.status || {};
       const nextProgressMap = statusRes.data.progress || {};
       const nextUserSettledMap = statusRes.data.userSettled || {};
+      const nextSettledMembersMap = statusRes.data.settledMembers || {};
 
       if (showSettleNotifications) {
         Object.entries(nextStatusMap).forEach(([id, isSettled]) => {
@@ -156,6 +158,7 @@ function GroupDetails() {
       setSettledStatusMap(nextStatusMap);
       setSettleProgressMap(nextProgressMap);
       setUserSettledMap(nextUserSettledMap);
+      setSettledMembersMap(nextSettledMembersMap);
 
       const activeGroups = fetchedGroups.filter((group) => !nextStatusMap[group.id]);
       setGroups(activeGroups);
@@ -659,7 +662,16 @@ function GroupDetails() {
               </div>
               <div className="space-y-3">
                 {expenses.map((expense) => {
-                  const isOwner = expense.user?._id === userId;
+                  const isOwner = (expense.createdBy && expense.createdBy._id === userId) || (expense.user?._id === userId);
+                  
+                  const settledMembers = settledMembersMap[groupId] || [];
+                  const involvedMembers = [
+                    expense.user?._id,
+                    expense.createdBy?._id,
+                    ...(expense.splits?.map(s => s.member?._id || s.member) || [])
+                  ].filter(Boolean);
+                  
+                  const expenseHasSettledUser = involvedMembers.some(id => settledMembers.includes(id));
 
                   return (
                     <div
@@ -681,7 +693,7 @@ function GroupDetails() {
                         <span className="text-base md:text-lg font-semibold text-green-600">
                           ₹{expense.amount}
                         </span>
-                        {isOwner && !hasUserSettledInGroup && !isGroupSettled && (
+                        {isOwner && !hasUserSettledInGroup && !isGroupSettled && !expenseHasSettledUser && (
                           <div className="flex gap-2 mt-1 justify-end">
                             <button
                               onClick={() => openEditExpense(expense)}
@@ -722,6 +734,8 @@ function GroupDetails() {
         isOpen={isCreateExpenseModalOpen}
         onClose={handleCloseCreateExpenseModal}
         onExpenseCreated={handleExpenseCreated}
+        currentUserId={userId}
+        settledMembers={settledMembersMap[groupId] || []}
       />
 
       {/* SettleUp modal */}
