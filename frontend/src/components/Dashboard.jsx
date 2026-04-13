@@ -61,8 +61,14 @@ useEffect(() => {
   }
 
   api.get('/user/profile')
+    .then((res) => {
+      if (res.data?.data?.username) {
+        localStorage.setItem('username', res.data.data.username);
+      }
+    })
     .catch(() => {
       localStorage.removeItem('token');
+      localStorage.removeItem('username');
       showNotification('Session expired. Please log in again.', 'error');
       navigate('/login');
     });

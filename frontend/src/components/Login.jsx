@@ -48,6 +48,9 @@ function Login() {
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
+      if (data.data && data.data.username) {
+        localStorage.setItem('username', data.data.username);
+      }
 
       setSuccess('Login successful! Redirecting...');
       showNotification('Login successful', 'success');

@@ -616,7 +616,9 @@ function GroupDetails() {
                             {member.charAt(0)}
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <span className="font-medium text-sm truncate">{member}</span>
+                            <span className="font-medium text-sm truncate">
+                              {member} {localStorage.getItem('username') === member && "(You)"}
+                            </span>
                             {isCreator && (
                               <span className="text-xs text-yellow-600 font-medium">
                                 Admin

@@ -168,7 +168,9 @@ function AddMembers({
                 key={user._id}
                 className="flex items-center space-x-2 bg-blue-50 px-2 py-1 rounded-full border border-blue-200 max-w-full"
               >
-                <span className="text-xs md:text-sm font-medium break-all">{user.username}</span>
+                <span className="text-xs md:text-sm font-medium break-all">
+                  {user.username} {localStorage.getItem('username') === user.username && "(You)"}
+                </span>
                 <button
                   type="button"
                   onClick={() => removeSelectedUser(user._id)}
@@ -218,7 +220,9 @@ function AddMembers({
                   onClick={() => handleUserSelect(user)}
                 >
                   <div className="min-w-0">
-                    <span className="font-medium text-sm md:text-base">{user.username}</span>
+                    <span className="font-medium text-sm md:text-base">
+                      {user.username} {localStorage.getItem('username') === user.username && "(You)"}
+                    </span>
                     <span className="text-xs text-gray-500 ml-2 break-all">{user.email}</span>
                   </div>
                   <span className="text-blue-600 text-xs font-semibold">
@@ -244,7 +248,9 @@ function AddMembers({
           {currentUsername ? (
             <div className="flex flex-wrap gap-2">
               <div className="flex items-center space-x-2 bg-white px-3 py-1 rounded-full border border-yellow-300">
-                <span className="text-sm font-medium break-all">{currentUsername}</span>
+                <span className="text-sm font-medium break-all">
+                  {currentUsername} {localStorage.getItem('username') === currentUsername && "(You)"}
+                </span>
                 <span className="text-xs text-yellow-700 font-semibold">Admin</span>
               </div>
             </div>

@@ -257,7 +257,9 @@ function CreateExpense({ groupId, isOpen, onClose, onExpenseCreated, currentUser
                       }}
                       className="rounded text-blue-600 w-4 h-4 focus:ring-blue-500"
                     />
-                    <span className="flex-1 font-medium">{member.username}</span>
+                    <span className="flex-1 font-medium">
+                      {member.username} {localStorage.getItem('username') === member.username && "(You)"}
+                    </span>
                     {selectedForSplit.includes(member._id) && (
                       <span className="font-semibold text-gray-700">
                         ₹{(parseFloat(newExpense.amount || 0) / selectedForSplit.length).toFixed(2)}
@@ -275,7 +277,9 @@ function CreateExpense({ groupId, isOpen, onClose, onExpenseCreated, currentUser
               <div className="space-y-2">
                 {groupMembers.map(member => (
                   <div key={member._id} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{member.username}</span>
+                    <span className="text-sm font-medium">
+                      {member.username} {localStorage.getItem('username') === member.username && "(You)"}
+                    </span>
                     <input
                       type="number"
                       min="0"

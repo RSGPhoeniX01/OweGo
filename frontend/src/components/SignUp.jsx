@@ -53,6 +53,9 @@ function SignUp() {
     if (data.token) {
       localStorage.setItem('token', data.token);
     }
+    if (data.data && data.data.username) {
+      localStorage.setItem('username', data.data.username);
+    }
     setSuccess('Signup successful! Redirecting...');
     showNotification('Signup successful', 'success');
     setForm({ username: '', email: '', password: '' });
