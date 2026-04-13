@@ -257,11 +257,86 @@ export const userExpense = async (req, res) => {
       };
     });
 
+    // --- SMART DISBURSEMENT (DEBT SIMPLIFICATION) ALGORITHM ---
+    const allGroupExpenses = await Expense.find({ group: groupId })
+      .populate('user', 'username')
+      .populate('splits.member', 'username');
+
+    const balances = {}; // Map of memberId -> { net: amount, username: string }
+
+    allGroupExpenses.forEach(exp => {
+      const payerObj = exp.user;
+      if (!payerObj) return;
+      
+      const payerId = payerObj._id.toString();
+      if (!balances[payerId]) balances[payerId] = { net: 0, username: payerObj.username };
+
+      let totalSplitShare = 0;
+
+      if (exp.splits && exp.splits.length > 0) {
+        exp.splits.forEach(split => {
+          if (!split.member) return;
+          const memberId = split.member._id.toString();
+          if (!balances[memberId]) balances[memberId] = { net: 0, username: split.member.username };
+
+          // User owes this amount to the pool
+          balances[memberId].net -= split.share;
+          totalSplitShare += split.share;
+        });
+
+        // Payer gets back the total split amount
+        balances[payerId].net += totalSplitShare;
+      }
+    });
+
+    const debtors = [];
+    const creditors = [];
+
+    for (const [id, data] of Object.entries(balances)) {
+      if (data.net < -0.01) {
+        debtors.push({ id, username: data.username, amount: -data.net });
+      } else if (data.net > 0.01) {
+        creditors.push({ id, username: data.username, amount: data.net });
+      }
+    }
+
+    // Sort by largest debts and credits to minimize transactions (Greedy cash flow approach)
+    debtors.sort((a, b) => b.amount - a.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
+
+    const transactions = [];
+    let i = 0;
+    let j = 0;
+
+    while (i < debtors.length && j < creditors.length) {
+      const debtor = debtors[i];
+      const creditor = creditors[j];
+      
+      const minAmount = Math.min(debtor.amount, creditor.amount);
+      
+      transactions.push({
+        from: debtor.id,
+        fromName: debtor.username,
+        to: creditor.id,
+        toName: creditor.username,
+        amount: parseFloat(minAmount.toFixed(2))
+      });
+      
+      debtor.amount -= minAmount;
+      creditor.amount -= minAmount;
+      
+      if (Math.abs(debtor.amount) < 0.01) i++;
+      if (Math.abs(creditor.amount) < 0.01) j++;
+    }
+
+    const userTransactions = transactions.filter(t => t.from === userId || t.to === userId);
+
     res.status(200).json({
       success: true,
       totalToPay,
       totalToReceive,
-      expenses: expenseDetails
+      expenses: expenseDetails,
+      transactions: userTransactions
     });
   } catch (error) {
     console.error('Get user expenses in group error:', error);

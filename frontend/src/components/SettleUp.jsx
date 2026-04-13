@@ -6,6 +6,7 @@ const SettleUp = ({ groupId, isOpen, onClose, userId, groupMembers }) => {
   const [expenses, setExpenses] = useState([]);
   const [totalToPay, setTotalToPay] = useState(0);
   const [totalToReceive, setTotalToReceive] = useState(0);
+  const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState('');
   const [settling, setSettling] = useState(false);
   const [settleStatus, setSettleStatus] = useState(null); // null | 'waiting' | 'settled'
@@ -33,6 +34,7 @@ const SettleUp = ({ groupId, isOpen, onClose, userId, groupMembers }) => {
         setExpenses(res.data.expenses);
         setTotalToPay(res.data.totalToPay);
         setTotalToReceive(res.data.totalToReceive);
+        setTransactions(res.data.transactions || []);
         setLoading(false);
       })
       .catch(err => {
@@ -141,14 +143,37 @@ const SettleUp = ({ groupId, isOpen, onClose, userId, groupMembers }) => {
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="font-semibold">Total to Pay:</span>
+                  <span className="font-semibold">Total to Pay (To Pool):</span>
                   <span className="text-red-600 font-bold">₹{totalToPay}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="font-semibold">Total to Receive:</span>
+                  <span className="font-semibold">Total to Receive (From Pool):</span>
                   <span className="text-green-600 font-bold">₹{totalToReceive}</span>
                 </div>
               </div>
+              
+              {transactions && transactions.length > 0 && (
+                <div className="mt-4 border-t pt-4">
+                  <h3 className="font-semibold mb-2">Smart Settlement Plan</h3>
+                  <ul className="space-y-2">
+                    {transactions.map((t, idx) => {
+                      if (t.from === userId) {
+                         return (
+                           <li key={idx} className="text-sm p-3 bg-red-50 text-red-800 rounded-md border border-red-100 flex items-center shadow-sm">
+                             <span className="flex-1">You need to give <span className="font-bold">₹{t.amount}</span> to <span className="font-bold">{t.toName}</span></span>
+                           </li>
+                         );
+                      } else {
+                         return (
+                           <li key={idx} className="text-sm p-3 bg-green-50 text-green-800 rounded-md border border-green-100 flex items-center shadow-sm">
+                             <span className="flex-1"><span className="font-bold">{t.fromName}</span> needs to give you <span className="font-bold">₹{t.amount}</span></span>
+                           </li>
+                         );
+                      }
+                    })}
+                  </ul>
+                </div>
+              )}
             </>
           )}
         </div>
