@@ -67,7 +67,9 @@ function ExpenseDetails({ expense, isOpen, onClose }) {
                   {expense.user?.username?.charAt(0) || 'U'}
                 </div>
                 <div>
-                  <p className="font-medium">{expense.user?.username || 'Unknown'}</p>
+                  <p className="font-medium">
+                    {expense.user?.username || 'Unknown'} {localStorage.getItem('username') === expense.user?.username && "(You)"}
+                  </p>
                   <p className="text-sm text-gray-500">{expense.user?.email || ''}</p>
                 </div>
               </div>
@@ -80,7 +82,9 @@ function ExpenseDetails({ expense, isOpen, onClose }) {
                   {expense.createdBy?.username?.charAt(0) || expense.user?.username?.charAt(0) || 'U'}
                 </div>
                 <div>
-                  <p className="font-medium">{expense.createdBy?.username || expense.user?.username || 'Unknown'}</p>
+                  <p className="font-medium">
+                    {expense.createdBy?.username || expense.user?.username || 'Unknown'} {localStorage.getItem('username') === (expense.createdBy?.username || expense.user?.username) && "(You)"}
+                  </p>
                   <p className="text-sm text-gray-500">{expense.createdBy?.email || expense.user?.email || ''}</p>
                 </div>
               </div>
@@ -99,7 +103,9 @@ function ExpenseDetails({ expense, isOpen, onClose }) {
                         {split.member?.username?.charAt(0) || 'M'}
                       </div>
                       <div>
-                        <p className="font-medium">{split.member?.username || 'Unknown'}</p>
+                        <p className="font-medium">
+                          {split.member?.username || 'Unknown'} {localStorage.getItem('username') === split.member?.username && "(You)"}
+                        </p>
                         <p className="text-sm text-gray-500">{split.member?.email || ''}</p>
                       </div>
                     </div>
