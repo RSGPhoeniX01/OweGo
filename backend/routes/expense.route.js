@@ -3,13 +3,14 @@ import { addExpense, updateExpense, deleteExpense, getExpense, getAllExpense, us
 import { userAuthentication } from '../middleware/user.middleware.js';
 import { verifyGroupMember } from '../middleware/group.middleware.js';
 import { verifyExpenseOwner } from '../middleware/expense.middleware.js';
+import { checkUserNotSettled } from '../middleware/settleup.middleware.js';
 const router=express.Router();
 
 router.get('/allexpenses',userAuthentication,getAllExpense);
-router.post('/:groupId/addexpense',userAuthentication,verifyGroupMember,addExpense);
+router.post('/:groupId/addexpense',userAuthentication,verifyGroupMember,checkUserNotSettled,addExpense);
 router.post('/:groupId/userexpense',userAuthentication,verifyGroupMember,userExpense);
 router.get('/:groupId/expenses',userAuthentication,verifyGroupMember,getExpense)
-router.put('/:expenseId/editexpense',userAuthentication,verifyExpenseOwner,updateExpense);
-router.delete('/:expenseId/deleteexpense',userAuthentication,verifyExpenseOwner,deleteExpense);
+router.put('/:expenseId/editexpense',userAuthentication,verifyExpenseOwner,checkUserNotSettled,updateExpense);
+router.delete('/:expenseId/deleteexpense',userAuthentication,verifyExpenseOwner,checkUserNotSettled,deleteExpense);
 
 export default router

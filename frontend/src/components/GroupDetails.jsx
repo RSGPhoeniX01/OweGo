@@ -457,7 +457,7 @@ function GroupDetails() {
                           )}
                         </div>
 
-                        {userId === group.creatorId && (
+                        {userId === group.creatorId && !userSettledMap[group.id] && !settledStatusMap[group.id] && (
                           <button
                             type="button"
                             onClick={(e) => {
@@ -681,7 +681,7 @@ function GroupDetails() {
                         <span className="text-base md:text-lg font-semibold text-green-600">
                           ₹{expense.amount}
                         </span>
-                        {isOwner && (
+                        {isOwner && !hasUserSettledInGroup && !isGroupSettled && (
                           <div className="flex gap-2 mt-1 justify-end">
                             <button
                               onClick={() => openEditExpense(expense)}
