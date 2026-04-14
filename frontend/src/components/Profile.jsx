@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Header from "./Header";
+import { showNotification } from "../notifications";
 
 function Profile() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ function Profile() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Please log in to access your profile.");
+      showNotification("Please log in to access your profile.", "warning");
       navigate("/login");
       return;
     }
@@ -50,7 +51,7 @@ function Profile() {
       })
       .catch(() => {
         localStorage.removeItem("token");
-        alert("Session expired. Please log in again.");
+        showNotification("Session expired. Please log in again.", "warning");
         navigate("/login");
       });
   }, [navigate]);
@@ -79,7 +80,7 @@ function Profile() {
       }
 
       if (Object.keys(updateData).length === 0) {
-        alert("No changes to save");
+        showNotification("No changes to save", "warning");
         return;
       }
 
@@ -88,10 +89,10 @@ function Profile() {
         setUser(response.data.data);
         setIsEditing(false);
         setEditForm({ username: "", email: "", password: "" });
-        alert("Profile updated successfully!");
+        showNotification("Profile updated successfully!", "success");
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to update profile");
+      showNotification(error.response?.data?.message || "Failed to update profile", "error");
     }
   };
 
@@ -179,18 +180,7 @@ function Profile() {
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span className="font-medium text-gray-600">Email:</span>
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        value={editForm.email}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, email: e.target.value })
-                        }
-                        className="text-gray-800 border rounded px-2 py-1"
-                      />
-                    ) : (
-                      <span className="text-gray-800">{user?.email}</span>
-                    )}
+                    <span className="text-gray-500">{user?.email}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span className="font-medium text-gray-600">Password:</span>

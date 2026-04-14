@@ -3,6 +3,7 @@ import {Link, useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import Header from './Header';
 import { showNotification } from '../notifications';
+import { GoogleLogin } from '@react-oauth/google';
 
 function Login() {
   const [form, setForm] = useState({ usernameOrEmail: '', password: '' });
@@ -30,6 +31,30 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
     setError('');
     setSuccess('');
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+      const res = await api.post('/user/google-auth', { token: credentialResponse.credential });
+      const data = res.data;
+      if (!data.success) {
+        throw new Error(data.message || 'Google Auth failed');
+      }
+      if (data.token) localStorage.setItem('token', data.token);
+      if (data.data && data.data.username) {
+        localStorage.setItem('username', data.data.username);
+      }
+      setSuccess('Google Login successful! Redirecting...');
+      showNotification('Google Login successful', 'success');
+      setTimeout(() => navigate('/dashboard'), 1200);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -101,6 +126,19 @@ function Login() {
           {error && <div className="text-red-600 text-center font-medium">{error}</div>}
           {success && <div className="text-green-600 text-center font-medium">{success}</div>}
         </form>
+        <div className="my-5 flex items-center justify-center">
+          <span className="h-px bg-gray-300 flex-1"></span>
+          <span className="px-4 text-gray-500 font-medium text-sm">OR</span>
+          <span className="h-px bg-gray-300 flex-1"></span>
+        </div>
+        <div className="flex justify-center mb-6">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              setError('Google Failed');
+            }}
+          />
+        </div>
       <div>
         <p className="text-center text-gray-600">
           Don't have an account? Register{' '}

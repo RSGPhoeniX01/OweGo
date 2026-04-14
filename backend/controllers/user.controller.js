@@ -1,6 +1,9 @@
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Password validation function
 const validatePassword = (password) => {
@@ -244,13 +247,6 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    // Prepare update fields, defaulting to current values if not provided
-    let updateFields = {
-      username: username || currentUser.username,
-      email: email || currentUser.email,
-      password: currentUser.password // default to old password
-    };
-
     // If updating username
     if (username && username !== currentUser.username) {
       const existingUsername = await User.findOne({ username, _id: { $ne: userId } });
@@ -260,17 +256,15 @@ export const updateUser = async (req, res) => {
           message: 'Username already exists'
         });
       }
+      currentUser.username = username;
     }
 
-    // If updating email
+    // Disallow email updates
     if (email && email !== currentUser.email) {
-      const existingEmail = await User.findOne({ email, _id: { $ne: userId } });
-      if (existingEmail) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already exists'
-        });
-      }
+      return res.status(400).json({
+        success: false,
+        message: 'Email updates are not allowed'
+      });
     }
 
     // If updating password
@@ -284,22 +278,19 @@ export const updateUser = async (req, res) => {
         });
       }
       const salt = await bcrypt.genSalt(10);
-      updateFields.password = await bcrypt.hash(password, salt);
+      currentUser.password = await bcrypt.hash(password, salt);
     }
 
-    // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: updateFields },
-      { new: true, runValidators: true, context: 'query' }
-    ).select('-password');
+    // Save the user (runs validators properly with correct 'this' context)
+    await currentUser.save();
 
-    if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
+    // Prepare response data without password
+    const updatedUser = {
+      _id: currentUser._id,
+      username: currentUser.username,
+      email: currentUser.email,
+      createdAt: currentUser.createdAt
+    };
 
     res.status(200).json({
       success: true,
@@ -359,5 +350,75 @@ export const searchUsers = async (req, res) => {
       message: 'Internal server error',
       error: error.message
     });
+  }
+};
+
+// Google Auth Controller
+export const googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Google token is required' });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({ 
+      $or: [{ googleId }, { email }]
+    });
+
+    if (user) {
+      // If user exists with email but no googleId (signed up normally before), link it
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      // Generate a unique username from email prefix
+      let baseUsername = email.split('@')[0];
+      let newUsername = baseUsername;
+      let counter = 1;
+      
+      while (await User.findOne({ username: newUsername })) {
+        newUsername = `${baseUsername}${Math.floor(Math.random() * 1000)}`;
+        counter++;
+        if (counter > 10) break; // safeguard
+      }
+
+      user = new User({
+        username: newUsername,
+        email,
+        googleId
+      });
+      await user.save();
+    }
+
+    const jwtToken = generateToken(user._id);
+
+    const userResponse = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Google login successful',
+      data: userResponse,
+      token: jwtToken
+    });
+
+  } catch (error) {
+    console.error('Google Auth error:', error);
+    res.status(500).json({ success: false, message: 'Google Auth failed', error: error.message });
   }
 };
