@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api'
 import Header from './Header';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { showNotification } from '../notifications';
 function Home() {
   const [msg] = useState('');
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ function Home() {
         .then(() => navigate('/dashboard'))
         .catch(() => {
           localStorage.removeItem('token');
-          alert('Session expired. Please log in again.');
+          showNotification('Session expired. Please log in again.', 'warning');
           navigate('/login')
         });
     }

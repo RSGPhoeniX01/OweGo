@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { showNotification } from '../notifications';
 
 function EditExpenseModal({ isOpen, onClose, expense, onSave }) {
   const [description, setDescription] = useState('');
@@ -31,7 +32,7 @@ function EditExpenseModal({ isOpen, onClose, expense, onSave }) {
 
     const totalSplit = splits.reduce((sum, s) => sum + parseFloat(s.share || 0), 0);
     if (Math.abs(totalSplit - amount) > 0.01) {
-      alert("Total of splits doesn't match amount.");
+      showNotification("Total of splits doesn't match amount.", "error");
       return;
     }
 
