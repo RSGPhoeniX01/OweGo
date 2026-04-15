@@ -12,6 +12,9 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Detect if running inside a WebView or Median/GoNative app
+  const isWebView = /gonative|median|webview/i.test(navigator.userAgent);
+
   useEffect(() => {
     // Auto-redirect if logged in
     const token = localStorage.getItem('token');
@@ -25,6 +28,33 @@ function SignUp() {
         });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    // Handle Google Redirect Response (Implicit Flow for WebViews)
+    const hash = window.location.hash;
+    if (hash && hash.includes('id_token=')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const idToken = params.get('id_token');
+      if (idToken) {
+        handleGoogleSuccess({ credential: idToken });
+        // Clean up URL hash to prevent re-processing on refresh
+        window.history.replaceState(null, null, window.location.pathname);
+      }
+    }
+  }, []);
+
+  const handleMobileGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = window.location.origin + '/signup'; // Current page
+    const nonce = Math.random().toString(36).substring(2);
+    const scope = encodeURIComponent('openid profile email');
+    
+    // Construct the manual OAuth URL (Implicit Flow)
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=id_token&scope=${scope}&nonce=${nonce}`;
+    
+    setLoading(true);
+    window.location.assign(authUrl);
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -149,12 +179,29 @@ function SignUp() {
           <span className="h-px bg-gray-300 flex-1"></span>
         </div>
         <div className="flex justify-center mb-6">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-              setError('Google Failed');
-            }}
-          />
+          {isWebView ? (
+            // Custom button for WebViews where the standard GSI button often fails to render
+            <button
+              onClick={handleMobileGoogleLogin}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 w-full bg-white border border-gray-300 rounded-lg px-6 py-2 text-gray-700 font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
+            >
+              <img 
+                src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" 
+                alt="Google" 
+                className="w-5 h-5"
+              />
+              <span>Sign up with Google</span>
+            </button>
+          ) : (
+            // Standard interactive button for desktop browsers
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                setError('Google Failed');
+              }}
+            />
+          )}
         </div>
       <div>
         <p className="text-center text-gray-600">
