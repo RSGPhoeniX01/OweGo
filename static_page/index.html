@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OweGo - Starting Services</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #network-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            background: rgba(15, 15, 15, 0.6);
+            padding: 4rem 6rem;
+            border-radius: 30px;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            box-sizing: border-box;
+            transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .content:hover {
+            box-shadow: 0 40px 80px rgba(255, 77, 0, 0.15);
+        }
+
+        h1 {
+            font-size: 6rem;
+            margin: 0;
+            background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -3px;
+            transform: translateZ(50px);
+            transition: text-shadow 0.1s ease;
+            filter: drop-shadow(0 0 15px rgba(255, 77, 0, 0.3));
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 3.5rem;
+            }
+
+            .content {
+                padding: 2rem;
+            }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            margin-top: -1.5rem;
+            max-width: 450px;
+            line-height: 1.5;
+            transform: translateZ(30px);
+        }
+
+        button {
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: linear-gradient(135deg, #ff4d00 0%, #ff8c00 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 77, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 200px;
+            transform: translateZ(40px);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(255, 77, 0, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #333 0%, #222 100%);
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 15px;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pulse {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 0, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 77, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 0, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="network-canvas"></canvas>
+
+    <div class="content">
+        <h1>OweGo</h1>
+        <div class="subtitle">Our cloud services sleep after inactivity to save resources. Starting them up might take
+            around 30-50 seconds!. Please wait. Thank You!</div>
+        <button id="view-site-btn" class="pulse">
+            <span class="loader" id="loader"></span>
+            <span id="btn-text">View Site</span>
+        </button>
+    </div>
+
+    <script>
+        // Setup wake up calls immediately when someone opens the page
+        const backendUrl = 'https://owego-backend.onrender.com';
+        const frontendUrl = 'https://owego.onrender.com/login';
+
+        let backendReady = false;
+        let frontendReady = false;
+
+        // Cache buster to ensure the request is actually sent
+        const timestamp = new Date().getTime();
+
+        // This will hang if the server is asleep, and resolve when it wakes up
+        fetch(`${backendUrl}/?ping=${timestamp}`, { mode: 'no-cors', cache: 'no-store' })
+            .then(() => { backendReady = true; console.log("Backend connection established."); })
+            .catch(err => { backendReady = true; console.log("Backend ping failed, but might be awake."); });
+
+        fetch(`${frontendUrl}/?ping=${timestamp}`, { mode: 'no-cors', cache: 'no-store' })
+            .then(() => { frontendReady = true; console.log("Frontend connection established."); })
+            .catch(err => { frontendReady = true; console.log("Frontend ping failed, but might be awake."); });
+
+        const btn = document.getElementById('view-site-btn');
+        const btnText = document.getElementById('btn-text');
+        const loader = document.getElementById('loader');
+
+        btn.addEventListener('click', () => {
+            // Update UI
+            btn.disabled = true;
+            btn.classList.remove('pulse');
+            loader.style.display = 'block';
+            btnText.innerText = 'Redirecting to Site...';
+
+            const checkReadyAndRedirect = () => {
+                if (backendReady && frontendReady) {
+                    btnText.innerText = 'Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = frontendUrl;
+                    }, 800);
+                } else {
+                    // Check again periodically in case promises are still pending
+                    setTimeout(checkReadyAndRedirect, 1000);
+                }
+            };
+
+            checkReadyAndRedirect();
+        });
+
+        // --- Tilt and Interactive Shadows ---
+        const card = document.querySelector('.content');
+        const title = document.querySelector('h1');
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // Tilt calculation
+            const rotateX = (centerY - y) / 15;
+            const rotateY = (x - centerX) / 20;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+            // Deep text shadow that moves opposite to tilt
+            const moveX = (x - centerX) / 10;
+            const moveY = (y - centerY) / 10;
+
+            // "Upside" shadow effect - moving glow
+            title.style.textShadow = `
+                ${-moveX}px ${-moveY}px 25px rgba(255, 77, 0, 0.4),
+                ${-moveX / 2}px ${-moveY / 2}px 10px rgba(255, 255, 255, 0.2)
+            `;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
+            card.style.transition = 'transform 0.5s ease';
+            title.style.textShadow = '0 0 20px rgba(255, 77, 0, 0.3)';
+        });
+
+        card.addEventListener('mouseenter', () => {
+            card.style.transition = 'none';
+        });
+
+        // --- Neural Network Animation Logic ---
+        const canvas = document.getElementById('network-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height, particles;
+
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+
+            particles = [];
+            // Calculate a good number of particles based on screen size
+            const numParticles = Math.floor((width * height) / 10000);
+
+            // Generate particles
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 1.2,
+                    vy: (Math.random() - 0.5) * 1.2,
+                    radius: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // Slightly clear screen to give trailing effect (optional, completely clear for sharp dots)
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = '#ff4d00';
+
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+
+                // Move
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Subtly bounce off edges
+                if (p.x < -50 || p.x > width + 50) p.vx *= -1;
+                if (p.y < -50 || p.y > height + 50) p.vy *= -1;
+
+                // Draw dots
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw connecting lines
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Line distance logic
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 77, 0, ${1 - dist / 120})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        window.addEventListener('resize', init);
+
+        // Start animation
+        init();
+        animate();
+    </script>
+</body>
+
+</html>
