@@ -176,104 +176,49 @@
     </div>
 
     <script>
+        // Setup wake up calls immediately when someone opens the page
         const backendUrl = 'https://owego-backend.onrender.com';
         const frontendUrl = 'https://owego-frontend.onrender.com/login';
 
         let backendReady = false;
         let frontendReady = false;
-        let redirectRequested = false;
+
+        // Cache buster to ensure the request is actually sent
+        const timestamp = new Date().getTime();
+
+        // This will hang if the server is asleep, and resolve when it wakes up
+        fetch(`${backendUrl}/?ping=${timestamp}`, { mode: 'no-cors', cache: 'no-store' })
+            .then(() => { backendReady = true; console.log("Backend connection established."); })
+            .catch(err => { backendReady = true; console.log("Backend ping failed, but might be awake."); });
+
+        fetch(`${frontendUrl}/?ping=${timestamp}`, { mode: 'no-cors', cache: 'no-store' })
+            .then(() => { frontendReady = true; console.log("Frontend connection established."); })
+            .catch(err => { frontendReady = true; console.log("Frontend ping failed, but might be awake."); });
 
         const btn = document.getElementById('view-site-btn');
         const btnText = document.getElementById('btn-text');
         const loader = document.getElementById('loader');
-        const subtitle = document.querySelector('.subtitle');
-
-        function updateStatus() {
-            if (redirectRequested) {
-                if (backendReady && frontendReady) {
-                    btnText.innerText = 'Redirecting Now...';
-                    window.location.href = frontendUrl;
-                } else if (backendReady) {
-                    btnText.innerText = 'Waking Frontend...';
-                } else if (frontendReady) {
-                    btnText.innerText = 'Waking Backend...';
-                } else {
-                    btnText.innerText = 'Waking Services...';
-                }
-            }
-        }
-
-        async function pollBackend() {
-            try {
-                // Real fetch to verify the app is actually responding
-                const response = await fetch(`${backendUrl}/`, { 
-                    method: 'GET',
-                    mode: 'cors', // CORS is allowed in server.js
-                    cache: 'no-store' 
-                });
-                if (response.ok || response.status === 200) {
-                    backendReady = true;
-                    console.log("Backend is UP.");
-                    updateStatus();
-                } else {
-                    throw new Error("Not ready");
-                }
-            } catch (err) {
-                console.log("Backend sleeping... retrying.");
-                setTimeout(pollBackend, 3000);
-            }
-        }
-
-        async function pollFrontend() {
-            try {
-                // Using an image ping is often more reliable for Render frontend 'wake up' 
-                // because it bypasses some CORS/load-balancer complexities
-                const img = new Image();
-                img.onload = () => {
-                    frontendReady = true;
-                    console.log("Frontend is UP.");
-                    updateStatus();
-                };
-                img.onerror = () => {
-                    // Even an error from the server (like 404 on the specific image) 
-                    // means the server is at least responding to requests.
-                    // But for frontend, we just need it to not be 'Loading...'
-                    frontendReady = true; 
-                    console.log("Frontend responded.");
-                    updateStatus();
-                };
-                img.src = `${frontendUrl}?t=${Date.now()}`;
-                
-                // Also do a fetch just in case
-                fetch(frontendUrl, { mode: 'no-cors', cache: 'no-store' })
-                    .then(() => {
-                        if (!frontendReady) {
-                            frontendReady = true;
-                            updateStatus();
-                        }
-                    });
-
-            } catch (err) {
-                setTimeout(pollFrontend, 3000);
-            }
-        }
-
-        // Start polling immediately on page load
-        pollBackend();
-        pollFrontend();
 
         btn.addEventListener('click', () => {
-            redirectRequested = true;
+            // Update UI
             btn.disabled = true;
             btn.classList.remove('pulse');
             loader.style.display = 'block';
-            
-            if (backendReady && frontendReady) {
-                btnText.innerText = 'Redirecting...';
-                window.location.href = frontendUrl;
-            } else {
-                updateStatus();
-            }
+            btnText.innerText = 'Redirecting to Site...';
+
+            const checkReadyAndRedirect = () => {
+                if (backendReady && frontendReady) {
+                    btnText.innerText = 'Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = frontendUrl;
+                    }, 800);
+                } else {
+                    // Check again periodically in case promises are still pending
+                    setTimeout(checkReadyAndRedirect, 1000);
+                }
+            };
+
+            checkReadyAndRedirect();
         });
 
         // --- Tilt and Interactive Shadows ---
