@@ -92,12 +92,13 @@
             font-size: 1.2rem;
             font-weight: 600;
             color: #ffffff;
-            background: linear-gradient(135deg, #ff4d00 0%, #ff8c00 100%);
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(255, 77, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -108,12 +109,14 @@
         }
 
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px rgba(255, 77, 0, 0.4);
+            transform: translateY(-2px) scale(1.05);
+            background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 100%);
+            border-color: transparent;
+            box-shadow: 0 15px 30px rgba(255, 77, 0, 0.4);
         }
 
         button:active {
-            transform: translateY(1px);
+            transform: translateY(1px) scale(0.98);
         }
 
         button:disabled {
@@ -159,6 +162,130 @@
                 box-shadow: 0 0 0 0 rgba(255, 77, 0, 0);
             }
         }
+
+        /* --- New Try Our App Styles --- */
+        .button-group {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            transform: translateZ(40px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: #111;
+            padding: 2.5rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 77, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 40px rgba(255, 77, 0, 0.15);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: #ff8c00;
+        }
+
+        .apk-info {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+
+        .apk-info p {
+            margin: 0.5rem 0;
+            color: #ccc;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .apk-info strong {
+            color: #fff;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            min-width: auto;
+            padding: 0;
+        }
+
+        /* Notifications */
+        .notifications-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-left: 4px solid #ff4d00;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease forwards;
+            font-size: 0.95rem;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.fade-out {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
 </head>
 
@@ -169,11 +296,40 @@
         <h1>OweGo</h1>
         <div class="subtitle">Our cloud services sleep after inactivity to save resources. Starting them up might take
             around 30-50 seconds!. Please wait. Thank You!</div>
-        <button id="view-site-btn" class="pulse">
-            <span class="loader" id="loader"></span>
-            <span id="btn-text">View Site</span>
-        </button>
+        
+        <div class="button-group">
+            <button id="view-site-btn" class="pulse">
+                <span class="loader" id="loader"></span>
+                <span id="btn-text">View Site</span>
+            </button>
+            <button id="try-app-btn" class="pulse">
+                Try Our App
+            </button>
+        </div>
     </div>
+
+    <!-- App Download Modal -->
+    <div id="download-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" id="close-modal">&times;</button>
+            <h2>Get OweGo App</h2>
+            <p>Experience smoother expense management on your Android device.</p>
+            
+            <div class="apk-info">
+                <p><span>File Name:</span> <strong>OweGo.apk</strong></p>
+                <p><span>Size:</span> <strong>14.2 MB</strong></p>
+                <p><span>Version:</span> <strong>v1.0.4</strong></p>
+            </div>
+
+            <button id="confirm-download-btn">
+                <span class="loader" id="download-loader"></span>
+                <span id="download-btn-text">Download APK</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notifications" class="notifications-container"></div>
 
     <script>
         // Setup wake up calls immediately when someone opens the page
@@ -219,6 +375,70 @@
             };
 
             checkReadyAndRedirect();
+        });
+
+        // --- Try Our App Logic ---
+        const tryAppBtn = document.getElementById('try-app-btn');
+        const modal = document.getElementById('download-modal');
+        const closeModal = document.getElementById('close-modal');
+        const confirmDownloadBtn = document.getElementById('confirm-download-btn');
+        const downloadLoader = document.getElementById('download-loader');
+        const downloadBtnText = document.getElementById('download-btn-text');
+        const notifications = document.getElementById('notifications');
+
+        function showNotification(message) {
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.innerHTML = `<span>🔔</span> ${message}`;
+            notifications.appendChild(div);
+
+            setTimeout(() => {
+                div.classList.add('fade-out');
+                setTimeout(() => div.remove(), 300);
+            }, 4000);
+        }
+
+        tryAppBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        // Close modal on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('active');
+        });
+
+        confirmDownloadBtn.addEventListener('click', () => {
+            confirmDownloadBtn.disabled = true;
+            downloadLoader.style.display = 'block';
+            downloadBtnText.innerText = 'Downloading...';
+
+            showNotification('Thanks for downloading! Your OweGo experience is about to get better.');
+
+            // Simulate download process
+            setTimeout(() => {
+                // In a real scenario, this would be the actual APK link
+                // For demonstration, we create a dummy download
+                const dummyLink = document.createElement('a');
+                dummyLink.href = '#'; // Replace with real path if known
+                dummyLink.download = 'OweGo.apk';
+                document.body.appendChild(dummyLink);
+                dummyLink.click();
+                document.body.removeChild(dummyLink);
+
+                // Reset button state
+                confirmDownloadBtn.disabled = false;
+                downloadLoader.style.display = 'none';
+                downloadBtnText.innerText = 'Download APK';
+                
+                // Close modal after brief delay
+                setTimeout(() => {
+                    modal.classList.remove('active');
+                }, 1000);
+            }, 2500);
         });
 
         // --- Tilt and Interactive Shadows ---
