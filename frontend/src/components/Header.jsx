@@ -10,6 +10,18 @@ const AndroidIcon = () => (
     </svg>
 );
 
+const UserIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+);
+
+const LogoutIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+    </svg>
+);
+
 export default function Header() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -63,16 +75,22 @@ export default function Header() {
                         <button
                             onClick={handleLogout}
                             disabled={!isLoggedIn}
-                            className="border px-4 py-1 rounded font-medium hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-red-50 hover:bg-red-100 text-red-700 transition-all border border-red-100 shadow-sm cursor-pointer group"
                         >
-                            {!isLoggedIn ? 'Logging out...' : 'Logout'}
+                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform text-red-600">
+                                <LogoutIcon />
+                            </div>
+                            <span className="text-sm font-semibold pr-1">{!isLoggedIn ? 'Logging out...' : 'Logout'}</span>
                         </button>
                     ) : (
                         <button
                             onClick={() => navigate('/profile')}
-                            className="border px-4 py-1 rounded font-medium hover:bg-gray-50 cursor-pointer transition-colors"
+                            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200 shadow-sm cursor-pointer group"
                         >
-                            Profile
+                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform text-gray-600">
+                                <UserIcon />
+                            </div>
+                            <span className="text-sm font-semibold pr-1">Profile</span>
                         </button>
                     )}
                 </div>
