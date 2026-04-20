@@ -420,9 +420,9 @@
 
             // Simulate download process
             setTimeout(() => {
-                // Set link to the root APK file
+                // Set link to the local APK file in static_page folder
                 const dummyLink = document.createElement('a');
-                dummyLink.href = '../OweGo.apk'; 
+                dummyLink.href = './OweGo.apk'; 
                 dummyLink.download = 'OweGo.apk';
                 document.body.appendChild(dummyLink);
                 dummyLink.click();
