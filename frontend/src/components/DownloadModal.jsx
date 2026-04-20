@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { showNotification } from '../notifications';
-import oweGoApk from '../assets/OweGo.apk';
 
 const DownloadModal = ({ isOpen, onClose }) => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -13,7 +12,7 @@ const DownloadModal = ({ isOpen, onClose }) => {
             // Simulate download
             setIsDownloading(false);
             const dummyLink = document.createElement('a');
-            dummyLink.href = oweGoApk;
+            dummyLink.href = '/OweGo.apk';
             dummyLink.download = 'OweGo.apk';
             document.body.appendChild(dummyLink);
             dummyLink.click();
