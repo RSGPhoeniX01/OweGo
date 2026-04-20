@@ -420,10 +420,9 @@
 
             // Simulate download process
             setTimeout(() => {
-                // In a real scenario, this would be the actual APK link
-                // For demonstration, we create a dummy download
+                // Set link to the root APK file
                 const dummyLink = document.createElement('a');
-                dummyLink.href = '#'; // Replace with real path if known
+                dummyLink.href = '../OweGo.apk'; 
                 dummyLink.download = 'OweGo.apk';
                 document.body.appendChild(dummyLink);
                 dummyLink.click();
