@@ -331,23 +331,23 @@ function GroupDetails() {
   };
 
   const handleUpdateExpense = async (updated) => {
-  try {
-    const res = await api.put(`/expense/${updated._id}/editexpense`, {
-      description: updated.description,
-      amount: updated.amount,
-      splits: updated.splits  
-    });
+    try {
+      const res = await api.put(`/expense/${updated._id}/editexpense`, {
+        description: updated.description,
+        amount: updated.amount,
+        splits: updated.splits
+      });
 
-    if (res.data.success) {
-      showNotification("Expense updated", "success");
-      fetchExpenses(groupId);
-      setIsEditExpenseModalOpen(false);
+      if (res.data.success) {
+        showNotification("Expense updated", "success");
+        fetchExpenses(groupId);
+        setIsEditExpenseModalOpen(false);
+      }
+    } catch (err) {
+      console.error("Error updating:", err);
+      showNotification("Update failed", "error");
     }
-  } catch (err) {
-    console.error("Error updating:", err);
-    showNotification("Update failed", "error");
-  }
-};
+  };
   const deleteExpense = async (expenseId) => {
     if (!window.confirm("Are you sure you want to delete this expense?"))
       return;
@@ -385,7 +385,7 @@ function GroupDetails() {
     if (!groupId) return;
     const intervalId = setInterval(() => {
       fetchExpenses(groupId);
-      fetchGroupsAndSettleProgress(true).catch(() => {});
+      fetchGroupsAndSettleProgress(true).catch(() => { });
     }, 1000);
     return () => clearInterval(intervalId);
   }, [groupId]);
@@ -415,7 +415,7 @@ function GroupDetails() {
         <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-56 md:w-64' : 'w-10 md:w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
+            className="text-gray-600 focus:outline-none absolute top-2 right-2 mt-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
             title="Toggle sidebar"
           >
             <img
@@ -442,13 +442,12 @@ function GroupDetails() {
                     groups.map((group, index) => (
                       <div
                         key={index}
-                        className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                          selectedGroup === group.name
-                            ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
-                            : settleProgressMap[group.id]?.settledCount > 0
+                        className={`group w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${selectedGroup === group.name
+                          ? "bg-blue-100 text-blue-700 border-l-4 border-blue-600"
+                          : settleProgressMap[group.id]?.settledCount > 0
                             ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500"
                             : "hover:bg-gray-100"
-                        }`}
+                          }`}
                         onClick={() => handleGroupSelect(group.name)}
                       >
                         <div className="flex-1 min-w-0">
@@ -513,66 +512,62 @@ function GroupDetails() {
               </div>
             </div>
           ) : (
-          <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h1
-                className={`text-2xl md:text-3xl font-bold break-words ${
-                  selectedGroupProgress.settledCount > 0 && !isGroupSettled
+            <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
+              <div className="flex justify-between items-center mb-6">
+                <h1
+                  className={`text-2xl md:text-3xl font-bold break-words ${selectedGroupProgress.settledCount > 0 && !isGroupSettled
                     ? "text-yellow-700"
                     : "text-gray-800"
-                }`}
-              >
-                {selectedGroup}
-              </h1>
-            </div>
-
-            {/* Settled group indicator */}
-            {isGroupSettled && (
-              <div className="mb-6 p-4 rounded-lg bg-green-100 border border-green-300 flex items-center justify-center">
-                <span className="text-green-800 font-bold text-lg">
-                  Group Settled ✓
-                </span>
+                    }`}
+                >
+                  {selectedGroup}
+                </h1>
               </div>
-            )}
-            {!isGroupSettled &&
-              selectedGroupProgress.totalMembers > 0 &&
-              selectedGroupProgress.settledCount > 0 && (
-                <div className="mb-6 p-4 rounded-lg bg-yellow-100 border border-yellow-300 flex items-center justify-center">
-                  <span className="text-yellow-800 font-bold text-lg">
-                    {selectedGroupProgress.settledCount}/{selectedGroupProgress.totalMembers} members settled
+
+              {/* Settled group indicator */}
+              {isGroupSettled && (
+                <div className="mb-6 p-4 rounded-lg bg-green-100 border border-green-300 flex items-center justify-center">
+                  <span className="text-green-800 font-bold text-lg">
+                    Group Settled ✓
                   </span>
                 </div>
               )}
+              {!isGroupSettled &&
+                selectedGroupProgress.totalMembers > 0 &&
+                selectedGroupProgress.settledCount > 0 && (
+                  <div className="mb-6 p-4 rounded-lg bg-yellow-100 border border-yellow-300 flex items-center justify-center">
+                    <span className="text-yellow-800 font-bold text-lg">
+                      {selectedGroupProgress.settledCount}/{selectedGroupProgress.totalMembers} members settled
+                    </span>
+                  </div>
+                )}
 
-            <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 overflow-x-hidden">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">Members</h2>
-                <button
-                  type="button"
-                  onClick={() => setIsMembersPanelOpen((prev) => !prev)}
-                  className="text-gray-600 focus:outline-none text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
-                  title="Toggle members panel"
-                >
-                  <img
-                    src={open_slider}
-                    alt="Toggle Members Panel"
-                    className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
-                      isMembersPanelOpen ? '-rotate-90' : 'rotate-90'
+              <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 mb-6 overflow-x-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold">Members</h2>
+                  <button
+                    type="button"
+                    onClick={() => setIsMembersPanelOpen((prev) => !prev)}
+                    className="text-gray-600 focus:outline-none text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
+                    title="Toggle members panel"
+                  >
+                    <img
+                      src={open_slider}
+                      alt="Toggle Members Panel"
+                      className={`w-4 h-4 transition-transform duration-300 ease-in-out ${isMembersPanelOpen ? '-rotate-90' : 'rotate-90'
+                        }`}
+                    />
+                  </button>
+                </div>
+
+                <div
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isMembersPanelOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
-                  />
-                </button>
-              </div>
-
-              <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  isMembersPanelOpen ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
-                }`}
-              >
+                >
                   <div className="mb-6">
                     <div
-                      className={`w-full min-w-0 ${
-                        canAddMembers ? "" : "opacity-60 pointer-events-none"
-                      }`}
+                      className={`w-full min-w-0 ${canAddMembers ? "" : "opacity-60 pointer-events-none"
+                        }`}
                     >
                       <AddMembers
                         key={selectedGroup || 'group-members'}
@@ -602,16 +597,14 @@ function GroupDetails() {
                       return (
                         <div
                           key={index}
-                          className={`flex items-center space-x-2 p-2.5 md:p-3 rounded-lg min-w-0 ${
-                            isCreator
-                              ? "bg-yellow-50 border border-yellow-300"
-                              : "bg-gray-50"
-                          }`}
+                          className={`flex items-center space-x-2 p-2.5 md:p-3 rounded-lg min-w-0 ${isCreator
+                            ? "bg-yellow-50 border border-yellow-300"
+                            : "bg-gray-50"
+                            }`}
                         >
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold ${
-                              isCreator ? "bg-yellow-500" : "bg-blue-500"
-                            }`}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold ${isCreator ? "bg-yellow-500" : "bg-blue-500"
+                              }`}
                           >
                             {member.charAt(0)}
                           </div>
@@ -629,95 +622,93 @@ function GroupDetails() {
                       );
                     })}
                   </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 overflow-x-hidden">
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
-                <h2 className="text-lg md:text-xl font-semibold">Group Expenses</h2>
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={handleAddExpense}
-                    disabled={hasUserSettledInGroup || isGroupSettled}
-                    className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
-                      hasUserSettledInGroup || isGroupSettled
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
-                    }`}
-                  >
-                    {hasUserSettledInGroup ? "Expense Locked" : "Add Expense"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (!isGroupSettled && !hasUserSettledInGroup) setIsSettleUpOpen(true);
-                    }}
-                    disabled={isGroupSettled || hasUserSettledInGroup}
-                    className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
-                      isGroupSettled || hasUserSettledInGroup
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-                    }`}
-                  >
-                    {isGroupSettled ? "Group Settled" : hasUserSettledInGroup ? "Settled Up" : "Settle Up"}
-                  </button>
                 </div>
               </div>
-              <div className="space-y-3">
-                {expenses.map((expense) => {
-                  const isOwner = (expense.createdBy && expense.createdBy._id === userId) || (expense.user?._id === userId);
-                  
-                  const settledMembers = settledMembersMap[groupId] || [];
-                  const involvedMembers = [
-                    expense.user?._id,
-                    expense.createdBy?._id,
-                    ...(expense.splits?.map(s => s.member?._id || s.member) || [])
-                  ].filter(Boolean);
-                  
-                  const expenseHasSettledUser = involvedMembers.some(id => settledMembers.includes(id));
 
-                  return (
-                    <div
-                      key={expense._id}
-                      className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 p-3 md:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+              <div className="bg-white rounded-lg shadow p-3 sm:p-4 md:p-6 overflow-x-hidden">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold">Group Expenses</h2>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <button
+                      onClick={handleAddExpense}
+                      disabled={hasUserSettledInGroup || isGroupSettled}
+                      className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${hasUserSettledInGroup || isGroupSettled
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-green-600 text-white hover:bg-green-700 cursor-pointer"
+                        }`}
                     >
-                      <div
-                        className="flex-1 min-w-0"
-                        onClick={() => handleExpenseClick(expense)}
-                      >
-                        <h3 className="font-medium text-sm md:text-base break-words">{expense.description}</h3>
-                        <p className="text-xs md:text-sm text-gray-600 break-words">
-                          Paid by {expense.user?.username || "Unknown"} •{" "}
-                          {new Date(expense.updatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      {hasUserSettledInGroup ? "Expense Locked" : "Add Expense"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!isGroupSettled && !hasUserSettledInGroup) setIsSettleUpOpen(true);
+                      }}
+                      disabled={isGroupSettled || hasUserSettledInGroup}
+                      className={`text-sm md:text-base px-3 md:px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${isGroupSettled || hasUserSettledInGroup
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                        }`}
+                    >
+                      {isGroupSettled ? "Group Settled" : hasUserSettledInGroup ? "Settled Up" : "Settle Up"}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {expenses.map((expense) => {
+                    const isOwner = (expense.createdBy && expense.createdBy._id === userId) || (expense.user?._id === userId);
 
-                      <div className="text-left sm:text-right">
-                        <span className="text-base md:text-lg font-semibold text-green-600">
-                          ₹{expense.amount}
-                        </span>
-                        {isOwner && !hasUserSettledInGroup && !isGroupSettled && !expenseHasSettledUser && (
-                          <div className="flex gap-2 mt-1 justify-end">
-                            <button
-                              onClick={() => openEditExpense(expense)}
-                              className="text-blue-600 text-sm hover:underline cursor-pointer"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => deleteExpense(expense._id)}
-                              className="text-red-600 text-sm hover:underline cursor-pointer"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
+                    const settledMembers = settledMembersMap[groupId] || [];
+                    const involvedMembers = [
+                      expense.user?._id,
+                      expense.createdBy?._id,
+                      ...(expense.splits?.map(s => s.member?._id || s.member) || [])
+                    ].filter(Boolean);
+
+                    const expenseHasSettledUser = involvedMembers.some(id => settledMembers.includes(id));
+
+                    return (
+                      <div
+                        key={expense._id}
+                        className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 p-3 md:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <div
+                          className="flex-1 min-w-0"
+                          onClick={() => handleExpenseClick(expense)}
+                        >
+                          <h3 className="font-medium text-sm md:text-base break-words">{expense.description}</h3>
+                          <p className="text-xs md:text-sm text-gray-600 break-words">
+                            Paid by {expense.user?.username || "Unknown"} •{" "}
+                            {new Date(expense.updatedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <div className="text-left sm:text-right">
+                          <span className="text-base md:text-lg font-semibold text-green-600">
+                            ₹{expense.amount}
+                          </span>
+                          {isOwner && !hasUserSettledInGroup && !isGroupSettled && !expenseHasSettledUser && (
+                            <div className="flex gap-2 mt-1 justify-end">
+                              <button
+                                onClick={() => openEditExpense(expense)}
+                                className="text-blue-600 text-sm hover:underline cursor-pointer"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => deleteExpense(expense._id)}
+                                className="text-red-600 text-sm hover:underline cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
           )}
         </div>
       </div>

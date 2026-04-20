@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -17,92 +17,92 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
 
-// Scroll to section based on query param
-const [userExpenseData, setUserExpenseData] = useState(null);
-const [settledGroupData, setSettledGroupData] = useState(null);
-useEffect(() => {
-  const view = searchParams.get('view');
+  // Scroll to section based on query param
+  const [userExpenseData, setUserExpenseData] = useState(null);
+  const [settledGroupData, setSettledGroupData] = useState(null);
+  useEffect(() => {
+    const view = searchParams.get('view');
 
-  if (view === 'expenses') {
-    setActiveView('expenses');
+    if (view === 'expenses') {
+      setActiveView('expenses');
 
-    //Preload user expenses
-    api.get('/expense/allexpenses')
-      .then(res => {
-        if (res.data.success) setUserExpenseData(res.data);
-      })
-      .catch(err => console.error("Preload user expenses failed:", err));
+      //Preload user expenses
+      api.get('/expense/allexpenses')
+        .then(res => {
+          if (res.data.success) setUserExpenseData(res.data);
+        })
+        .catch(err => console.error("Preload user expenses failed:", err));
 
-  } else if (view === 'settlements') {
-    setActiveView('tracking');
+    } else if (view === 'settlements') {
+      setActiveView('tracking');
 
-    // Preload settled group data
-    api.get('/settleup/settled-groups')
-      .then(res => {
-        if (res.data.success) setSettledGroupData(res.data.settledGroups);
-      })
-      .catch(err => console.error("Preload settlements failed:", err));
-  } else if (view === 'feedback') {
-    setActiveView('feedback');
-  }
-}, [searchParams]);
-//**** */
+      // Preload settled group data
+      api.get('/settleup/settled-groups')
+        .then(res => {
+          if (res.data.success) setSettledGroupData(res.data.settledGroups);
+        })
+        .catch(err => console.error("Preload settlements failed:", err));
+    } else if (view === 'feedback') {
+      setActiveView('feedback');
+    }
+  }, [searchParams]);
+  //**** */
 
 
 
   const navigate = useNavigate();
   useEffect(() => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    showNotification('Please log in to access the dashboard.', 'error');
-    navigate('/login');
-    return;
-  }
+    const token = localStorage.getItem('token');
 
-  api.get('/user/profile')
-    .then((res) => {
-      if (res.data?.data?.username) {
-        localStorage.setItem('username', res.data.data.username);
-      }
-    })
-    .catch(() => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('username');
-      showNotification('Session expired. Please log in again.', 'error');
+    if (!token) {
+      showNotification('Please log in to access the dashboard.', 'error');
       navigate('/login');
-    });
+      return;
+    }
 
-  setLoading(true);
-  let tripsDone = false;
-  let expensesDone = false;
+    api.get('/user/profile')
+      .then((res) => {
+        if (res.data?.data?.username) {
+          localStorage.setItem('username', res.data.data.username);
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        showNotification('Session expired. Please log in again.', 'error');
+        navigate('/login');
+      });
 
-  api.get('/group/allgroups')
-    .then((res) => {
-      const data = res.data;
-      if (!data.success) throw new Error(data.message || 'Failed to fetch trips');
-      // Sort by createdAt descending, then take the first 3
-      const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setRecentTrips(sortedGroups.slice(0, 3)); // show latest 3 trips
-    })
-    .catch((err) => console.error('Error fetching trips:', err))
-    .finally(() => {
-      tripsDone = true;
-      if (expensesDone) setLoading(false);
-    });
+    setLoading(true);
+    let tripsDone = false;
+    let expensesDone = false;
 
-  api.get('/expense/allexpenses')
-  .then((res) => {
-    const data = res.data;
-    if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
-    setRecentExpenses(data.expenses.slice(0, 3)); // show latest 3 expenses
-  })
-  .catch((err) => console.error('Error fetching expenses:', err))
-  .finally(() => {
-    expensesDone = true;
-    if (tripsDone) setLoading(false);
-  });
-}, [navigate]);
+    api.get('/group/allgroups')
+      .then((res) => {
+        const data = res.data;
+        if (!data.success) throw new Error(data.message || 'Failed to fetch trips');
+        // Sort by createdAt descending, then take the first 3
+        const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setRecentTrips(sortedGroups.slice(0, 3)); // show latest 3 trips
+      })
+      .catch((err) => console.error('Error fetching trips:', err))
+      .finally(() => {
+        tripsDone = true;
+        if (expensesDone) setLoading(false);
+      });
+
+    api.get('/expense/allexpenses')
+      .then((res) => {
+        const data = res.data;
+        if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
+        setRecentExpenses(data.expenses.slice(0, 3)); // show latest 3 expenses
+      })
+      .catch((err) => console.error('Error fetching expenses:', err))
+      .finally(() => {
+        expensesDone = true;
+        if (tripsDone) setLoading(false);
+      });
+  }, [navigate]);
 
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -112,14 +112,13 @@ useEffect(() => {
 
       {/* Sidebar - Below header */}
       <aside
-        className={`fixed left-0 top-16 h-full ${
-          sidebarOpen ? 'w-64' : 'w-12'
-        } bg-white border-r border-gray-200 p-2 flex flex-col transition-all duration-300 ease-in-out shadow-md`}
+        className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-64' : 'w-12'
+          } bg-white border-r border-gray-200 p-2 flex flex-col transition-all duration-300 ease-in-out shadow-md`}
       >
-        
+
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-gray-600 focus:outline-none absolute top-2 right-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
+          className="text-gray-600 focus:outline-none absolute top-2 right-2 mt-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
           title="Toggle sidebar"
         >
           <img
@@ -131,53 +130,48 @@ useEffect(() => {
         {sidebarOpen && (
           <div className="mt-10 px-2">
             <nav className="space-y-4">
-              <button 
+              <button
                 onClick={() => setActiveView('dashboard')}
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
-                  activeView === 'dashboard' 
-                    ? 'bg-green-600 text-white' 
-                    : 'border hover:bg-gray-50'
-                }`}
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'dashboard'
+                  ? 'bg-green-600 text-white'
+                  : 'border hover:bg-gray-50'
+                  }`}
               >
                 Home
               </button>
               <button
-                onClick={() => setActiveView('groups')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
-                  activeView === 'groups' 
-                    ? 'bg-green-600 text-white' 
-                    : 'border hover:bg-gray-50'
-                }`}
+                onClick={() => setActiveView('groups')}
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'groups'
+                  ? 'bg-green-600 text-white'
+                  : 'border hover:bg-gray-50'
+                  }`}
               >
                 Groups
               </button>
               <button
-                onClick={() => setActiveView('expenses')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
-                  activeView === 'expenses' 
-                    ? 'bg-green-600 text-white' 
-                    : 'border hover:bg-gray-50'
-                }`}
+                onClick={() => setActiveView('expenses')}
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'expenses'
+                  ? 'bg-green-600 text-white'
+                  : 'border hover:bg-gray-50'
+                  }`}
               >
                 Expenses
               </button>
               <button
-                onClick={() => setActiveView('tracking')} 
-                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${
-                  activeView === 'tracking' 
-                    ? 'bg-green-600 text-white' 
-                    : 'border hover:bg-gray-50'
-                }`}
+                onClick={() => setActiveView('tracking')}
+                className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'tracking'
+                  ? 'bg-green-600 text-white'
+                  : 'border hover:bg-gray-50'
+                  }`}
               >
                 Tracking
               </button>
               <button
                 onClick={() => setActiveView('feedback')}
-                className={`group relative overflow-hidden w-full text-left px-4 py-2 rounded font-semibold cursor-pointer border transition-all duration-300 ${
-                  activeView === 'feedback'
-                    ? 'bg-sky-300 border-sky-500 shadow-[inset_0_3px_8px_rgba(3,105,161,0.35)] translate-y-[1px]'
-                    : 'bg-sky-200 border-sky-400 shadow-sm hover:shadow-md hover:-translate-y-[1px]'
-                }`}
+                className={`group relative overflow-hidden w-full text-left px-4 py-2 rounded font-semibold cursor-pointer border transition-all duration-300 ${activeView === 'feedback'
+                  ? 'bg-sky-300 border-sky-500 shadow-[inset_0_3px_8px_rgba(3,105,161,0.35)] translate-y-[1px]'
+                  : 'bg-sky-200 border-sky-400 shadow-sm hover:shadow-md hover:-translate-y-[1px]'
+                  }`}
               >
                 <span className="absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/65 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:translate-x-[340%] transition-all duration-700"></span>
                 <span className="relative font-bold text-black">
@@ -188,11 +182,10 @@ useEffect(() => {
           </div>
         )}
       </aside>
-      
+
       {/* Main Content - Adjusted for header and sidebar */}
-      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
-        sidebarOpen ? 'ml-64' : 'ml-12'
-      }`}>
+      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-12'
+        }`}>
         {/* Page Content */}
         <section className="flex-1 p-6 bg-white overflow-auto flex justify-center mt-16">
           {activeView === 'dashboard' ? (
@@ -210,48 +203,48 @@ useEffect(() => {
                 </div>
               </div>
             ) : (
-            <div className="w-full max-w-4xl space-y-6">
-    <div className="border border-gray-300 rounded-xl p-4">
-      <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
-      {recentTrips.length === 0 ? (
-        <p className="text-gray-500">No recent trips found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {recentTrips.map((trip) => (
-            <li key={trip._id} className="border p-4 rounded hover:bg-gray-50">
-              <div className="font-medium">{trip.name}</div>
-              <div className="text-sm text-gray-600">{trip.description || 'No description'}</div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              <div className="w-full max-w-4xl space-y-6">
+                <div className="border border-gray-300 rounded-xl p-4">
+                  <h3 className="font-bold mb-2 text-lg">Recent Trips</h3>
+                  {recentTrips.length === 0 ? (
+                    <p className="text-gray-500">No recent trips found.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {recentTrips.map((trip) => (
+                        <li key={trip._id} className="border p-4 rounded hover:bg-gray-50">
+                          <div className="font-medium">{trip.name}</div>
+                          <div className="text-sm text-gray-600">{trip.description || 'No description'}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-    <div className="border border-gray-300 rounded-xl p-4">
-      <h3 className="font-bold mb-2 text-lg">Recent Expenses</h3>
-      {recentExpenses.length === 0 ? (
-        <p className="text-gray-500">No recent expenses found.</p>
-      ) : (
-        <ul className="space-y-2">
-          {recentExpenses.map((expense) => (
-            <li key={expense._id} className="flex justify-between items-center p-4 border rounded hover:bg-gray-50">
-              <div className="flex-1">
-                <h3 className="font-medium">{expense.description}</h3>
-                <p className="text-sm text-gray-600">
-                  Paid by {expense.user?.username || 'Unknown'} • {new Date(expense.updatedAt).toLocaleDateString()}
-                </p>
+                <div className="border border-gray-300 rounded-xl p-4">
+                  <h3 className="font-bold mb-2 text-lg">Recent Expenses</h3>
+                  {recentExpenses.length === 0 ? (
+                    <p className="text-gray-500">No recent expenses found.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {recentExpenses.map((expense) => (
+                        <li key={expense._id} className="flex justify-between items-center p-4 border rounded hover:bg-gray-50">
+                          <div className="flex-1">
+                            <h3 className="font-medium">{expense.description}</h3>
+                            <p className="text-sm text-gray-600">
+                              Paid by {expense.user?.username || 'Unknown'} • {new Date(expense.updatedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-lg font-semibold text-green-600">
+                              ₹{expense.amount}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-lg font-semibold text-green-600">
-                  ₹{expense.amount}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-            </div>
             )
           ) : activeView === 'groups' ? (
             <Groups />
