@@ -17,8 +17,10 @@
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         #network-canvas {
@@ -28,11 +30,64 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            pointer-events: none;
+        }
+
+        .bg-places {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-place {
+            position: absolute;
+            padding: 0.85rem 1.2rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.16);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.18);
+            font-size: 0.8rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+            animation: floatPlace 12s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        .bg-place::before {
+            content: '';
+            position: absolute;
+            inset: -30px;
+            border-radius: inherit;
+            background: radial-gradient(circle, rgba(255, 77, 0, 0.12), transparent 68%);
+            filter: blur(18px);
+            z-index: -1;
+        }
+
+        .bg-place.place-1 { top: 10%; left: 8%; animation-delay: 0s; }
+        .bg-place.place-2 { top: 18%; right: 12%; animation-delay: 1.8s; }
+        .bg-place.place-3 { bottom: 28%; left: 12%; animation-delay: 3.2s; }
+        .bg-place.place-4 { bottom: 14%; right: 8%; animation-delay: 4.6s; }
+        .bg-place.place-5 { top: 52%; left: 6%; animation-delay: 6s; }
+
+        @keyframes floatPlace {
+            0%, 100% {
+                transform: translate3d(0, 0, 0) scale(1);
+                opacity: 0.12;
+            }
+
+            50% {
+                transform: translate3d(0, -12px, 0) scale(1.03);
+                opacity: 0.24;
+            }
         }
 
         .content {
             position: relative;
-            z-index: 2;
+            z-index: 3;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -59,6 +114,7 @@
             font-size: 6rem;
             margin: 0;
             background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 100%);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
@@ -286,25 +342,90 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
+
+        .page-shell {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.1rem;
+            width: 100%;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .site-credit {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #b5b5b5;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .site-credit span {
+            color: #8d8d8d;
+        }
+
+        .creator-link {
+            display: inline;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #d7d7d7;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+            box-shadow: none;
+        }
+
+        .creator-link:hover {
+            color: #ff8c00;
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.45);
+        }
+
+        @media (max-width: 600px) {
+            .site-credit {
+                font-size: 0.86rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <canvas id="network-canvas"></canvas>
 
-    <div class="content">
-        <h1>OweGo</h1>
-        <div class="subtitle">Our cloud services sleep after inactivity to save resources. Starting them up might take
-            around 30-50 seconds!. Please wait. Thank You!</div>
-        
-        <div class="button-group">
-            <button id="view-site-btn" class="pulse">
-                <span class="loader" id="loader"></span>
-                <span id="btn-text">View Site</span>
-            </button>
-            <button id="try-app-btn" class="pulse">
-                Try Our App
-            </button>
+    <div class="bg-places" aria-hidden="true">
+        <div class="bg-place place-1">rsgPhoeniX</div>
+        <div class="bg-place place-2">Lakshya</div>
+        <div class="bg-place place-3">rsgPhoeniX</div>
+        <div class="bg-place place-4">Lakshya</div>
+        <div class="bg-place place-5">rsgPhoeniX</div>
+    </div>
+
+    <div class="page-shell">
+        <div class="content">
+            <h1>OweGo</h1>
+            <div class="subtitle">Our cloud services sleep after inactivity to save resources. Starting them up might take
+                around 30-50 seconds!. Please wait. Thank You!</div>
+            
+            <div class="button-group">
+                <button id="view-site-btn" class="pulse">
+                    <span class="loader" id="loader"></span>
+                    <span id="btn-text">View Site</span>
+                </button>
+                <button id="try-app-btn" class="pulse">
+                    Try Our App
+                </button>
+            </div>
+        </div>
+
+        <div class="site-credit">
+            <span>Made and maintained by</span>
+            <a class="creator-link" href="https://github.com/RSGPhoeniX01" target="_blank" rel="noopener noreferrer">rsgPhoeniX</a>
         </div>
     </div>
 
