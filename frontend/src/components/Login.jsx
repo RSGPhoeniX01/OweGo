@@ -31,16 +31,37 @@ function Login() {
   }, [navigate]);
 
   useEffect(() => {
-    // Handle Google Redirect Response (Implicit Flow for WebViews)
+    // Handle Google Redirect Response for WebViews/Median
+    // Check for token in hash (Implicit Flow)
     const hash = window.location.hash;
     if (hash && hash.includes('id_token=')) {
       const params = new URLSearchParams(hash.substring(1));
       const idToken = params.get('id_token');
       if (idToken) {
+        // Store in sessionStorage for quick access
+        sessionStorage.setItem('pending_google_token', idToken);
         handleGoogleSuccess({ credential: idToken });
         // Clean up URL hash to prevent re-processing on refresh
         window.history.replaceState(null, null, window.location.pathname);
+        return;
       }
+    }
+    
+    // Check for token in URL query params (for Median custom redirects)
+    const searchParams = new URLSearchParams(window.location.search);
+    const urlToken = searchParams.get('id_token');
+    if (urlToken) {
+      sessionStorage.setItem('pending_google_token', urlToken);
+      handleGoogleSuccess({ credential: urlToken });
+      window.history.replaceState(null, null, window.location.pathname);
+      return;
+    }
+    
+    // Check sessionStorage for token from previous redirect
+    const pendingToken = sessionStorage.getItem('pending_google_token');
+    if (pendingToken) {
+      sessionStorage.removeItem('pending_google_token');
+      handleGoogleSuccess({ credential: pendingToken });
     }
   }, []);
 
@@ -50,7 +71,11 @@ function Login() {
     const nonce = Math.random().toString(36).substring(2);
     const scope = encodeURIComponent('openid profile email');
     
+    // Store pending state in sessionStorage so we can resume after redirect
+    sessionStorage.setItem('google_auth_in_progress', 'true');
+    
     // Construct the manual OAuth URL (Implicit Flow)
+    // Use response_type=id_token to get the ID token in the hash
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=id_token&scope=${scope}&nonce=${nonce}`;
     
     setLoading(true);
