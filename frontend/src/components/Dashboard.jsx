@@ -110,9 +110,18 @@ function Dashboard() {
     <div className="flex h-screen bg-white text-black">
       <Header />
 
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-black/30 backdrop-blur-[1px] transition-opacity duration-300 md:hidden"
+        />
+      )}
+
       {/* Sidebar - Below header */}
       <aside
-        className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-64' : 'w-12'
+        className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] ${sidebarOpen ? 'w-64 translate-x-0' : 'w-12 -translate-x-0'
           } bg-white border-r border-gray-200 p-2 flex flex-col transition-all duration-300 ease-in-out shadow-md`}
       >
 
@@ -131,7 +140,10 @@ function Dashboard() {
           <div className="mt-10 px-2">
             <nav className="space-y-4">
               <button
-                onClick={() => setActiveView('dashboard')}
+                onClick={() => {
+                  setActiveView('dashboard');
+                  setSidebarOpen(false);
+                }}
                 className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'dashboard'
                   ? 'bg-green-600 text-white'
                   : 'border hover:bg-gray-50'
@@ -140,7 +152,10 @@ function Dashboard() {
                 Home
               </button>
               <button
-                onClick={() => setActiveView('groups')}
+                onClick={() => {
+                  setActiveView('groups');
+                  setSidebarOpen(false);
+                }}
                 className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'groups'
                   ? 'bg-green-600 text-white'
                   : 'border hover:bg-gray-50'
@@ -149,7 +164,10 @@ function Dashboard() {
                 Groups
               </button>
               <button
-                onClick={() => setActiveView('expenses')}
+                onClick={() => {
+                  setActiveView('expenses');
+                  setSidebarOpen(false);
+                }}
                 className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'expenses'
                   ? 'bg-green-600 text-white'
                   : 'border hover:bg-gray-50'
@@ -158,7 +176,10 @@ function Dashboard() {
                 Expenses
               </button>
               <button
-                onClick={() => setActiveView('tracking')}
+                onClick={() => {
+                  setActiveView('tracking');
+                  setSidebarOpen(false);
+                }}
                 className={`w-full text-left px-4 py-2 rounded font-semibold transition-colors cursor-pointer ${activeView === 'tracking'
                   ? 'bg-green-600 text-white'
                   : 'border hover:bg-gray-50'
@@ -167,7 +188,10 @@ function Dashboard() {
                 Tracking
               </button>
               <button
-                onClick={() => setActiveView('feedback')}
+                onClick={() => {
+                  setActiveView('feedback');
+                  setSidebarOpen(false);
+                }}
                 className={`group relative overflow-hidden w-full text-left px-4 py-2 rounded font-semibold cursor-pointer border transition-all duration-300 ${activeView === 'feedback'
                   ? 'bg-sky-300 border-sky-500 shadow-[inset_0_3px_8px_rgba(3,105,161,0.35)] translate-y-[1px]'
                   : 'bg-sky-200 border-sky-400 shadow-sm hover:shadow-md hover:-translate-y-[1px]'
@@ -184,7 +208,7 @@ function Dashboard() {
       </aside>
 
       {/* Main Content - Adjusted for header and sidebar */}
-      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-64' : 'ml-12'
+      <main className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-12 md:ml-64' : 'ml-12 md:ml-12'
         }`}>
         {/* Page Content */}
         <section className="flex-1 p-6 bg-white overflow-auto flex justify-center mt-16">

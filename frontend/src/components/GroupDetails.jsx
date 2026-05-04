@@ -410,9 +410,17 @@ function GroupDetails() {
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Header />
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-x-0 top-16 bottom-0 z-30 bg-black/30 backdrop-blur-[1px] transition-opacity duration-300 md:hidden"
+        />
+      )}
       <div className="flex h-screen overflow-x-hidden">
         {/* Left Pane - Groups */}
-        <div className={`fixed left-0 top-16 h-full ${sidebarOpen ? 'w-56 md:w-64' : 'w-10 md:w-12'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] ${sidebarOpen ? 'w-56 md:w-64 translate-x-0' : 'w-10 md:w-12 -translate-x-0'} bg-white shadow-lg flex flex-col overflow-y-auto transition-all duration-300 ease-in-out`}>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-600 focus:outline-none absolute top-2 right-2 mt-2 text-sm border border-gray-400 rounded px-1 py-0.5 cursor-pointer"
@@ -428,7 +436,10 @@ function GroupDetails() {
             <>
               <div className="p-4 mt-10">
                 <button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => {
+                    setSidebarOpen(false);
+                    navigate("/dashboard");
+                  }}
                   className="w-full bg-blue-600 text-white text-sm md:text-base py-2 px-3 md:px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center cursor-pointer"
                 >
                   Back to Dashboard
@@ -448,7 +459,10 @@ function GroupDetails() {
                             ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500"
                             : "hover:bg-gray-100"
                           }`}
-                        onClick={() => handleGroupSelect(group.name)}
+                        onClick={() => {
+                          handleGroupSelect(group.name);
+                          setSidebarOpen(false);
+                        }}
                       >
                         <div className="flex-1 min-w-0">
                           <span className="block truncate">{group.name}</span>
@@ -495,7 +509,7 @@ function GroupDetails() {
             </>
           )}
         </div>
-        <div className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-56 md:ml-64' : 'ml-10 md:ml-12'}`}>
+        <div className={`flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-50 transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-12 md:ml-64' : 'ml-12 md:ml-12'}`}>
           {isGroupDetailsLoading ? (
             <div className="p-3 sm:p-4 md:p-6 max-w-4xl mx-auto mt-16 w-full">
               <div className="w-full max-w-4xl space-y-6">
