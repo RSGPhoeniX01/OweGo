@@ -13,6 +13,7 @@ import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 import AddMembers from "./AddMembers";
 import { showNotification } from "../notifications";
+import Notification from "./Notification";
 function GroupDetails() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -41,6 +42,9 @@ function GroupDetails() {
   const [isMembersPanelOpen, setIsMembersPanelOpen] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [groupBeingEdited, setGroupBeingEdited] = useState(null);
+  
+  const [confirmDelete, setConfirmDelete] = useState({ isOpen: false, expenseId: null });
+  
   const prevSettledStatusRef = useRef({});
   const selectionRequestRef = useRef(0);
 
@@ -348,9 +352,15 @@ function GroupDetails() {
       showNotification("Update failed", "error");
     }
   };
-  const deleteExpense = async (expenseId) => {
-    if (!window.confirm("Are you sure you want to delete this expense?"))
-      return;
+  const deleteExpense = (expenseId) => {
+    setConfirmDelete({ isOpen: true, expenseId });
+  };
+
+  const handleConfirmDelete = async () => {
+    const expenseId = confirmDelete.expenseId;
+    setConfirmDelete({ isOpen: false, expenseId: null });
+    
+    if (!expenseId) return;
 
     try {
       const res = await api.delete(`/expense/${expenseId}/deleteexpense`);
@@ -368,6 +378,10 @@ function GroupDetails() {
     }
   };
 
+  const handleCancelDelete = () => {
+    setConfirmDelete({ isOpen: false, expenseId: null });
+  };
+
   const selectedGroupObj = groups.find((g) => g.name === selectedGroup);
   const groupId = selectedGroupObj?.id;
   const groupMembers = selectedGroupObj?.members || [];
@@ -383,11 +397,8 @@ function GroupDetails() {
 
   useEffect(() => {
     if (!groupId) return;
-    const intervalId = setInterval(() => {
-      fetchExpenses(groupId);
-      fetchGroupsAndSettleProgress(true).catch(() => { });
-    }, 1000);
-    return () => clearInterval(intervalId);
+    fetchExpenses(groupId);
+    fetchGroupsAndSettleProgress(true).catch(() => { });
   }, [groupId]);
 
   useEffect(() => {
@@ -766,6 +777,14 @@ function GroupDetails() {
         onClose={() => setIsEditExpenseModalOpen(false)}
         expense={editExpense}
         onSave={handleUpdateExpense}
+      />
+      
+      {/* Confirm Delete Notification */}
+      <Notification 
+        isOpen={confirmDelete.isOpen}
+        message="Are you sure you want to delete this expense?"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </div>
   );

@@ -128,7 +128,7 @@ function Tracking({ preloaded }) {
 
       {/* Group Details Modal */}
       {selectedGroup && (
-        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex justify-between items-center p-6 border-b">
