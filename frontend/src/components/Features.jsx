@@ -38,7 +38,7 @@ export default function Features() {
         <div className="bg-gray-50 p-6 rounded shadow">
           <h2 className="text-xl font-semibold mb-2">Natural Language AI</h2>
           <p className="text-sm text-gray-600">
-            Just type "Lakshya paid ₹1000, Amit paid ₹200" and we will figure out who owes whom.
+            Just type "Person-1 paid ₹1000, Person-2 paid ₹200" and we will figure out who owes whom.
           </p>
         </div>
         <div className="bg-gray-50 p-6 rounded shadow">

@@ -61,16 +61,6 @@ export default function Header() {
                     onClick={() => navigate('/dashboard')}
                 />
                 <div className="flex items-center space-x-3">
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200 shadow-sm cursor-pointer group"
-                        title="Download App"
-                    >
-                        <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform">
-                            <AndroidIcon />
-                        </div>
-                        <span className="text-sm font-semibold pr-1">Try our app</span>
-                    </button>
                     {location.pathname === '/profile' ? (
                         <button
                             onClick={handleLogout}
@@ -108,16 +98,6 @@ export default function Header() {
                         <img src={logo} className="mr-5 h-10 w-auto" alt="Logo" />
                     </Link>
                     <div className="flex items-center lg:order-2">
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center space-x-2 px-3 py-1.5 mr-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200 cursor-pointer group"
-                            title="Download App"
-                        >
-                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform">
-                                <AndroidIcon />
-                            </div>
-                            <span className="text-sm font-semibold pr-1">Try our app</span>
-                        </button>
                         {isAuthRoute ? (
                             <button
                                 onClick={() => navigate('/')}
