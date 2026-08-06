@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
 import api from '../api';
 import ExpenseDetails from './ExpenseDetails';
+import { socket } from '../socket';
+import { jwtDecode } from 'jwt-decode';
 
 function UserExpenses({ preloaded }) {
   const [expenses, setExpenses] = useState([]);
@@ -11,15 +12,69 @@ function UserExpenses({ preloaded }) {
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
   useEffect(() => {
-  if (preloaded) {
-    setExpenses(preloaded.expenses || []);
-    setTotalToPay(preloaded.totalToPay || 0);
-    setTotalToReceive(preloaded.totalToReceive || 0);
-    setLoading(false);
-  } else {
-    fetchExpenses();
-  }
-}, [preloaded]);
+    if (preloaded) {
+      setExpenses(preloaded.expenses || []);
+      setTotalToPay(preloaded.totalToPay || 0);
+      setTotalToReceive(preloaded.totalToReceive || 0);
+      setLoading(false);
+    } else {
+      fetchExpenses();
+    }
+  }, [preloaded]);
+
+  useEffect(() => {
+    const processNewExpense = (expense) => {
+      const token = localStorage.getItem('token');
+      let userId = null;
+      if (token) {
+        try { userId = jwtDecode(token).userId || jwtDecode(token).id; } catch(e){}
+      }
+      if (!userId) return fetchExpenses();
+
+      const isOwner = expense.user?._id === userId;
+      let userPays = 0;
+      let userReceives = 0;
+
+      if (isOwner) {
+        userReceives = (expense.splits || [])
+          .filter(s => s.member?._id !== userId)
+          .reduce((sum, s) => sum + s.share, 0);
+        setTotalToReceive(prev => prev + userReceives);
+      } else {
+        const split = (expense.splits || []).find(s => s.member?._id === userId);
+        if (split) {
+          userPays = split.share;
+          setTotalToPay(prev => prev + userPays);
+        }
+      }
+
+      const newExpenseObj = {
+        ...expense,
+        userRole: isOwner ? 'owner' : 'member',
+        userPays,
+        userReceives
+      };
+
+      setExpenses(prev => [newExpenseObj, ...prev]);
+    };
+
+    const handleUpdate = (payload) => {
+      // Process ADD payload locally without making an API request to improve efficiency
+      if (payload && payload.action === 'ADD' && payload.expense) {
+        processNewExpense(payload.expense);
+      } else {
+        fetchExpenses();
+      }
+    };
+
+    socket.on('expense_updated', handleUpdate);
+    socket.on('settlement_updated', fetchExpenses);
+
+    return () => {
+      socket.off('expense_updated', handleUpdate);
+      socket.off('settlement_updated', fetchExpenses);
+    };
+  }, []);
 
 
   const fetchExpenses = async () => {

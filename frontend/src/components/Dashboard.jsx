@@ -10,6 +10,8 @@ import Feedback from './Feedback';
 import open_slider from "../assets/open_slider.svg";
 import closed_slider from "../assets/close_slider.svg";
 import { showNotification } from '../notifications';
+import { socket } from '../socket';
+import { jwtDecode } from 'jwt-decode';
 function Dashboard() {
   const [recentTrips, setRecentTrips] = useState([]);
   const [recentExpenses, setRecentExpenses] = useState([]);
@@ -60,6 +62,19 @@ function Dashboard() {
       return;
     }
 
+    let userId;
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.userId || decoded.id;
+    } catch (e) {
+      console.error("Invalid token");
+    }
+
+    if (userId) {
+      socket.auth = { token };
+      socket.connect();
+    }
+
     api.get('/user/profile')
       .then((res) => {
         if (res.data?.data?.username) {
@@ -73,35 +88,56 @@ function Dashboard() {
         navigate('/login');
       });
 
-    setLoading(true);
-    let tripsDone = false;
-    let expensesDone = false;
+    const fetchData = () => {
+      setLoading(true);
+      let tripsDone = false;
+      let expensesDone = false;
 
-    api.get('/group/allgroups')
-      .then((res) => {
-        const data = res.data;
-        if (!data.success) throw new Error(data.message || 'Failed to fetch trips');
-        // Sort by createdAt descending, then take the first 3
-        const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setRecentTrips(sortedGroups.slice(0, 3)); // show latest 3 trips
-      })
-      .catch((err) => console.error('Error fetching trips:', err))
-      .finally(() => {
-        tripsDone = true;
-        if (expensesDone) setLoading(false);
-      });
+      api.get('/group/allgroups')
+        .then((res) => {
+          const data = res.data;
+          if (!data.success) throw new Error(data.message || 'Failed to fetch trips');
+          const sortedGroups = [...data.groups].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setRecentTrips(sortedGroups.slice(0, 3));
+        })
+        .catch((err) => console.error('Error fetching trips:', err))
+        .finally(() => {
+          tripsDone = true;
+          if (expensesDone) setLoading(false);
+        });
 
-    api.get('/expense/allexpenses')
-      .then((res) => {
-        const data = res.data;
-        if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
-        setRecentExpenses(data.expenses.slice(0, 3)); // show latest 3 expenses
-      })
-      .catch((err) => console.error('Error fetching expenses:', err))
-      .finally(() => {
-        expensesDone = true;
-        if (tripsDone) setLoading(false);
-      });
+      api.get('/expense/allexpenses')
+        .then((res) => {
+          const data = res.data;
+          if (!data.success) throw new Error(data.message || 'Failed to fetch expenses');
+          setRecentExpenses(data.expenses.slice(0, 3));
+        })
+        .catch((err) => console.error('Error fetching expenses:', err))
+        .finally(() => {
+          expensesDone = true;
+          if (tripsDone) setLoading(false);
+        });
+    };
+
+    fetchData();
+
+    socket.on('expense_updated', (payload) => {
+      // Append the incoming populated expense payload directly to state to bypass an API fetch
+      if (payload && payload.action === 'ADD' && payload.expense) {
+        setRecentExpenses(prev => [payload.expense, ...prev].slice(0, 3));
+      } else {
+        fetchData();
+      }
+    });
+    socket.on('group_updated', fetchData);
+    socket.on('settlement_updated', fetchData);
+
+    return () => {
+      socket.off('expense_updated');
+      socket.off('group_updated', fetchData);
+      socket.off('settlement_updated', fetchData);
+      socket.disconnect();
+    };
   }, [navigate]);
 
 

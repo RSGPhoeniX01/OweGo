@@ -1,6 +1,7 @@
 import SettleUp from '../models/settleup.model.js';
 import Group from '../models/group.model.js';
 import Expense from '../models/expense.model.js';
+import { getIO } from '../socket.js';
 
 export const settleGroup = async (req, res) => {
     try {
@@ -24,6 +25,16 @@ export const settleGroup = async (req, res) => {
         settleDoc.isSettled = true;
       }
       await settleDoc.save();
+
+      try {
+        const io = getIO();
+        // Emit settlement updates so active group members immediately see the UI shift to settled state
+        io.to(`group_${groupId}`).emit('settlement_updated');
+        group.members.forEach(m => io.to(`user_${m}`).emit('settlement_updated'));
+      } catch (err) {
+        console.error('Socket emit error:', err);
+      }
+
       res.status(200).json({
         success: true,
         settleUp: settleDoc,
@@ -111,7 +122,8 @@ export const settleGroup = async (req, res) => {
         const allSettled = Boolean(settleDoc?.isSettled) || group.members.every((memberId) => settledBySet.has(memberId.toString()));
         const settledCount = allSettled ? totalMembers : Math.min(settledBySet.size, totalMembers);
 
-        statusMap[key] = allSettled;
+        // Move to Tracking if the group is fully settled OR if this specific user has settled
+        statusMap[key] = allSettled || settledBySet.has(userId);
         progressMap[key] = {
           settledCount,
           totalMembers,
@@ -163,10 +175,13 @@ export const settleGroup = async (req, res) => {
       const userGroups = await Group.find({ members: userId });
       const groupIds = userGroups.map(group => group._id);
   
-      // Find all settled groups
+      // Find all settled groups for this user (either fully settled or user has settled)
       const settledGroups = await SettleUp.find({ 
         group: { $in: groupIds }, 
-        isSettled: true 
+        $or: [
+          { isSettled: true },
+          { settledBy: userId }
+        ]
       }).populate('group');
   
       // Get detailed information for each settled group

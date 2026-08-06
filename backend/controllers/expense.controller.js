@@ -1,6 +1,7 @@
 import Expense from '../models/expense.model.js';
 import Group from '../models/group.model.js';
 import SettleUp from '../models/settleup.model.js';
+import { getIO } from '../socket.js';
 
 // Add a new expense
 export const addExpense = async (req, res) => {
@@ -50,6 +51,24 @@ export const addExpense = async (req, res) => {
     });
 
     await expense.save();
+    
+    // Populate expense with user details so the frontend can append it directly without fetching
+    const populatedExpense = await Expense.findById(expense._id)
+      .populate('user', 'username email')
+      .populate('createdBy', 'username email')
+      .populate('group', 'name')
+      .populate('splits.member', 'username email');
+    
+    try {
+      const io = getIO();
+      // Batch rooms (group, owner, and all splits) to emit a single efficient socket message
+      const rooms = [`group_${group}`, `user_${expenseUser}`];
+      if (splits) splits.forEach(s => rooms.push(`user_${s.member}`));
+      io.to(rooms).emit('expense_updated', { action: 'ADD', expense: populatedExpense });
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(201).json({ success: true, message: 'Expense added', expense });
   } catch (error) {
     console.error('Add expense error:', error);
@@ -97,6 +116,25 @@ export const updateExpense = async (req, res) => {
 
     Object.assign(expense, updateFields);
     await expense.save();
+    
+    // Populate expense for the frontend payload to prevent extra API calls
+    const populatedExpense = await Expense.findById(expense._id)
+      .populate('user', 'username email')
+      .populate('createdBy', 'username email')
+      .populate('group', 'name')
+      .populate('splits.member', 'username email');
+    
+    try {
+      const io = getIO();
+      // Emit the UPDATE action to all involved users simultaneously
+      const rooms = [`group_${expense.group}`];
+      if (expense.user) rooms.push(`user_${expense.user}`);
+      if (expense.splits) expense.splits.forEach(s => rooms.push(`user_${s.member}`));
+      io.to(rooms).emit('expense_updated', { action: 'UPDATE', expense: populatedExpense });
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ success: true, message: 'Expense updated', expense });
   } catch (error) {
     console.error('Update expense error:', error);
@@ -109,7 +147,21 @@ export const deleteExpense = async (req, res) => {
   try {
     // Expense is already verified and attached to req by middleware
     const expense = req.expense;
+    const expenseId = expense._id;
+    const groupId = expense.group;
     await expense.deleteOne();
+
+    try {
+      const io = getIO();
+      // Notify all involved parties of the DELETE action with the specific expenseId
+      const rooms = [`group_${groupId}`];
+      if (expense.user) rooms.push(`user_${expense.user}`);
+      if (expense.splits) expense.splits.forEach(s => rooms.push(`user_${s.member}`));
+      io.to(rooms).emit('expense_updated', { action: 'DELETE', expenseId, groupId });
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ success: true, message: 'Expense deleted' });
   } catch (error) {
     console.error('Delete expense error:', error);
@@ -151,11 +203,18 @@ export const getAllExpense = async (req, res) => {
     const userGroups = await Group.find({ members: userId });
     const groupIds = userGroups.map(group => group._id);
 
-    // Find all groups that are fully settled
-    const settledGroups = await SettleUp.find({ group: { $in: groupIds }, isSettled: true }).select('group');
-    const settledGroupIds = new Set(settledGroups.map(doc => doc.group.toString()));
+    // Find all SettleUp records for these groups
+    const settleDocs = await SettleUp.find({ group: { $in: groupIds } });
+    
+    // A group is considered settled for this user if it's fully settled OR the user is in settledBy
+    const settledGroupIds = new Set();
+    settleDocs.forEach(doc => {
+      if (doc.isSettled || doc.settledBy.includes(userId)) {
+        settledGroupIds.add(doc.group.toString());
+      }
+    });
 
-    // Only include expenses from groups that are NOT settled
+    // Only include expenses from groups that are NOT settled for this user
     const activeGroupIds = groupIds.filter(id => !settledGroupIds.has(id.toString()));
 
     // Find all expenses from those active groups

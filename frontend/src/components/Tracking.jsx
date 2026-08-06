@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import { socket } from '../socket';
 
 function Tracking({ preloaded }) {
   const [settledGroups, setSettledGroups] = useState([]);
@@ -8,13 +9,26 @@ function Tracking({ preloaded }) {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   useEffect(() => {
-  if (preloaded) {
-    setSettledGroups(preloaded || []);
-    setLoading(false);
-  } else {
-    fetchSettledGroups();
-  }
-}, [preloaded]);
+    if (preloaded) {
+      setSettledGroups(preloaded || []);
+      setLoading(false);
+    } else {
+      fetchSettledGroups();
+    }
+  }, [preloaded]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      // Re-fetch settled groups when a settlement_updated event is received to keep tracking view current
+      fetchSettledGroups();
+    };
+
+    socket.on('settlement_updated', handleUpdate);
+
+    return () => {
+      socket.off('settlement_updated', handleUpdate);
+    };
+  }, []);
 
 
   const fetchSettledGroups = async () => {

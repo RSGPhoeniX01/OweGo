@@ -1,5 +1,6 @@
 import Group from '../models/group.model.js';
 import User from '../models/user.model.js';
+import { getIO } from '../socket.js';
 
 // Create a new group
 export const createGroup = async (req, res) => {
@@ -29,6 +30,14 @@ export const createGroup = async (req, res) => {
     });
 
     await newGroup.save();
+
+    try {
+      const io = getIO();
+      // Notify all members that a new group they belong to has been created
+      memberIds.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
 
     res.status(201).json({ success: true, message: 'Group created', group: newGroup });
   } catch (error) {
@@ -60,6 +69,16 @@ export const addMembers = async (req, res) => {
     // Add new members
     group.members = Array.from(new Set([...currentMemberIds, ...members]));
     await group.save();
+
+    try {
+      const io = getIO();
+      // Broadcast group updates to the group room and all individual members' rooms
+      io.to(`group_${groupId}`).emit('group_updated');
+      group.members.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ success: true, message: 'Members added', group });
   } catch (error) {
     console.error('Add members error:', error);
@@ -85,7 +104,18 @@ export const deleteGroup = async (req, res) => {
   try {
     const groupId = req.groupId;
     const group = await Group.findById(groupId);
+    const memberIds = group.members.map(id => id.toString());
     await group.deleteOne();
+
+    try {
+      const io = getIO();
+      // Inform all current members that the group was deleted to remove it from their UI
+      io.to(`group_${groupId}`).emit('group_updated');
+      memberIds.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ success: true, message: 'Group deleted successfully' });
   } catch (error) {
     console.error('Delete group error:', error);
@@ -101,6 +131,16 @@ export const editGroup = async (req, res) => {
     if (name) group.name = name;
     if (description) group.description = description;
     await group.save();
+
+    try {
+      const io = getIO();
+      // Trigger a group update event so clients re-fetch the edited group name/description
+      io.to(`group_${groupId}`).emit('group_updated');
+      group.members.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ success: true, message: 'Group updated successfully', group });
   } catch (error) {
     console.error('Edit group error:', error);
@@ -136,6 +176,17 @@ export const removeMembers = async (req, res) => {
       memberId => !membersToRemove.includes(memberId.toString())
     );
     await group.save();
+
+    try {
+      const io = getIO();
+      // Update remaining members and also notify the removed members so they lose access
+      io.to(`group_${groupId}`).emit('group_updated');
+      group.members.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+      membersToRemove.forEach(id => io.to(`user_${id}`).emit('group_updated'));
+    } catch (err) {
+      console.error('Socket emit error:', err);
+    }
+
     res.status(200).json({ 
       success: true, 
       message: 'Members removed', 

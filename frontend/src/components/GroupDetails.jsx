@@ -14,6 +14,8 @@ import closed_slider from "../assets/close_slider.svg";
 import AddMembers from "./AddMembers";
 import { showNotification } from "../notifications";
 import Notification from "./Notification";
+import { socket } from '../socket';
+
 function GroupDetails() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -399,6 +401,35 @@ function GroupDetails() {
     if (!groupId) return;
     fetchExpenses(groupId);
     fetchGroupsAndSettleProgress(true).catch(() => { });
+
+    const token = localStorage.getItem('token');
+    if (token) socket.auth = { token };
+    socket.connect();
+    socket.emit('join_group', groupId);
+
+    const handleUpdate = (payload) => {
+      // Process payload locally for ADD, DELETE, and UPDATE actions to avoid unnecessary API requests
+      if (payload && payload.action === 'ADD' && payload.expense) {
+        setExpenses(prev => [payload.expense, ...prev]);
+      } else if (payload && payload.action === 'DELETE' && payload.expenseId) {
+        setExpenses(prev => prev.filter(e => e._id !== payload.expenseId));
+      } else if (payload && payload.action === 'UPDATE' && payload.expense) {
+        setExpenses(prev => prev.map(e => e._id === payload.expense._id ? payload.expense : e));
+      } else {
+        fetchExpenses(groupId);
+        fetchGroupsAndSettleProgress(false).catch(() => {});
+      }
+    };
+
+    socket.on('expense_updated', handleUpdate);
+    socket.on('group_updated', handleUpdate);
+    socket.on('settlement_updated', handleUpdate);
+
+    return () => {
+      socket.off('expense_updated', handleUpdate);
+      socket.off('group_updated', handleUpdate);
+      socket.off('settlement_updated', handleUpdate);
+    };
   }, [groupId]);
 
   useEffect(() => {

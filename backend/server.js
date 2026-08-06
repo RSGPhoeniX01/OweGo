@@ -11,6 +11,11 @@ dotenv.config();
 
 
 const app = express();
+import http from "http";
+import { initSocket } from "./socket.js";
+const server = http.createServer(app);
+initSocket(server);
+
 const port = process.env.PORT || 5000;
 
 connectDB();
@@ -35,6 +40,6 @@ app.use('/settleup',settleUpRoute);
 app.use('/feedback',feedbackRoute);
 
 
-app.listen(port, '0.0.0.0',() => {
+server.listen(port, '0.0.0.0',() => {
     console.log(`Server is running on port ${port}`);
 });
