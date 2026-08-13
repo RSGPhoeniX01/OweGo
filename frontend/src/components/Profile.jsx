@@ -35,8 +35,12 @@ function Profile() {
     ])
       .then(([profileRes, groupsRes, settledRes]) => {
         setUser(profileRes.data.data);
-        setGroupCount(groupsRes.data.groups.length);
 
+        // Filter out settled groups to get only active groups
+        const settledGroupIds = new Set(settledRes.data.settledGroups.map(sg => sg.groupId.toString()));
+        const activeGroups = groupsRes.data.groups.filter(g => !settledGroupIds.has(g._id.toString()));
+        
+        setGroupCount(activeGroups.length);
 
         // Number of settled groups
         setSettlementCount(settledRes.data.settledGroups.length);
