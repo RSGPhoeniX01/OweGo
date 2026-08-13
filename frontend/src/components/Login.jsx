@@ -149,9 +149,9 @@ function Login() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-    <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-200 px-4 py-6">
+    <main className="flex-1 flex items-center justify-center bg-gray-50 px-4 py-6">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">Login</h2>
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="text"

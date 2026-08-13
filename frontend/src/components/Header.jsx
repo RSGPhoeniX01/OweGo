@@ -121,17 +121,17 @@ export default function Header() {
                         {isAuthRoute ? (
                             <button
                                 onClick={() => navigate('/')}
-                                className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none cursor-pointer transition-colors "
+                                className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-full font-semibold text-sm hover:bg-blue-700 transition-colors"
                             >
-                                {'<'} Home
+                                Home
                             </button>
                         ) : (
-                            <Link
-                                to="/login"
-                                className="text-white bg-orange-700 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none cursor-pointer transition-colors "
+                            <button
+                                onClick={() => navigate('/signup')}
+                                className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-full font-semibold text-sm hover:bg-blue-700 transition-colors"
                             >
-                                Get Started {'>'}
-                            </Link>
+                                Get Started for Free
+                            </button>
                         )}
                     </div>
                     {!isAuthRoute && (
@@ -144,7 +144,7 @@ export default function Header() {
                                     <button
                                         type="button"
                                         onClick={() => scrollToSection('home')}
-                                        className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
+                                        className="block py-2 pr-4 pl-3 duration-200 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-600 lg:p-0 cursor-pointer"
                                     >
                                         Home
                                     </button>
@@ -153,7 +153,7 @@ export default function Header() {
                                     <button
                                         type="button"
                                         onClick={() => scrollToSection('features')}
-                                        className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
+                                        className="block py-2 pr-4 pl-3 duration-200 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-600 lg:p-0 cursor-pointer"
                                     >
                                         Features
                                     </button>
@@ -162,7 +162,7 @@ export default function Header() {
                                     <button
                                         type="button"
                                         onClick={() => scrollToSection('how-it-works')}
-                                        className="block py-2 pr-4 pl-3 duration-200 text-grey-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0 cursor-pointer"
+                                        className="block py-2 pr-4 pl-3 duration-200 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-blue-600 lg:p-0 cursor-pointer"
                                     >
                                         How It Work
                                     </button>

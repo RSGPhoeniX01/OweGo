@@ -12,8 +12,8 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #050505;
-            color: #ffffff;
+            background-color: #ffffff;
+            color: #1f2937;
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             display: flex;
@@ -41,50 +41,6 @@
             overflow: hidden;
         }
 
-        .bg-place {
-            position: absolute;
-            padding: 0.85rem 1.2rem;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 140, 0, 0.16);
-            background: rgba(255, 255, 255, 0.03);
-            color: rgba(255, 255, 255, 0.18);
-            font-size: 0.8rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
-            animation: floatPlace 12s ease-in-out infinite;
-            white-space: nowrap;
-        }
-
-        .bg-place::before {
-            content: '';
-            position: absolute;
-            inset: -30px;
-            border-radius: inherit;
-            background: radial-gradient(circle, rgba(255, 77, 0, 0.12), transparent 68%);
-            filter: blur(18px);
-            z-index: -1;
-        }
-
-        .bg-place.place-1 { top: 10%; left: 8%; animation-delay: 0s; }
-        .bg-place.place-2 { top: 18%; right: 12%; animation-delay: 1.8s; }
-        .bg-place.place-3 { bottom: 28%; left: 12%; animation-delay: 3.2s; }
-        .bg-place.place-4 { bottom: 14%; right: 8%; animation-delay: 4.6s; }
-        .bg-place.place-5 { top: 52%; left: 6%; animation-delay: 6s; }
-
-        @keyframes floatPlace {
-            0%, 100% {
-                transform: translate3d(0, 0, 0) scale(1);
-                opacity: 0.12;
-            }
-
-            50% {
-                transform: translate3d(0, -12px, 0) scale(1.03);
-                opacity: 0.24;
-            }
-        }
-
         .content {
             position: relative;
             z-index: 3;
@@ -93,13 +49,13 @@
             flex-direction: column;
             align-items: center;
             gap: 2rem;
-            background: rgba(15, 15, 15, 0.6);
+            background: rgba(255, 255, 255, 0.8);
             padding: 4rem 6rem;
             border-radius: 30px;
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
             max-width: 90%;
             box-sizing: border-box;
             transition: transform 0.1s ease-out, box-shadow 0.3s ease;
@@ -107,13 +63,13 @@
         }
 
         .content:hover {
-            box-shadow: 0 40px 80px rgba(255, 77, 0, 0.15);
+            box-shadow: 0 40px 80px rgba(37, 99, 235, 0.15);
         }
 
         h1 {
             font-size: 6rem;
             margin: 0;
-            background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -121,7 +77,7 @@
             letter-spacing: -3px;
             transform: translateZ(50px);
             transition: text-shadow 0.1s ease;
-            filter: drop-shadow(0 0 15px rgba(255, 77, 0, 0.3));
+            filter: drop-shadow(0 0 15px rgba(37, 99, 235, 0.2));
         }
 
         @media (max-width: 600px) {
@@ -136,7 +92,7 @@
 
         .subtitle {
             font-size: 1.1rem;
-            color: #a0a0a0;
+            color: #4b5563;
             margin-top: -1.5rem;
             max-width: 450px;
             line-height: 1.5;
@@ -147,14 +103,14 @@
             padding: 1rem 2.5rem;
             font-size: 1.2rem;
             font-weight: 600;
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #2563eb;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(37, 99, 235, 0.2);
             backdrop-filter: blur(5px);
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -166,9 +122,10 @@
 
         button:hover {
             transform: translateY(-2px) scale(1.05);
-            background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
             border-color: transparent;
-            box-shadow: 0 15px 30px rgba(255, 77, 0, 0.4);
+            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.3);
         }
 
         button:active {
@@ -176,8 +133,8 @@
         }
 
         button:disabled {
-            background: linear-gradient(135deg, #333 0%, #222 100%);
-            color: #888;
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            color: #9ca3af;
             cursor: not-allowed;
             box-shadow: none;
             transform: none;
@@ -187,12 +144,17 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255, 255, 255, .3);
+            border: 3px solid rgba(37, 99, 235, .3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: #2563eb;
             animation: spin 1s ease-in-out infinite;
             margin-right: 15px;
             display: none;
+        }
+        
+        button:hover .loader {
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-top-color: #ffffff;
         }
 
         @keyframes spin {
@@ -207,15 +169,15 @@
 
         @keyframes pulse-glow {
             0% {
-                box-shadow: 0 0 0 0 rgba(255, 77, 0, 0.4);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3);
             }
 
             70% {
-                box-shadow: 0 0 0 20px rgba(255, 77, 0, 0);
+                box-shadow: 0 0 0 20px rgba(37, 99, 235, 0);
             }
 
             100% {
-                box-shadow: 0 0 0 0 rgba(255, 77, 0, 0);
+                box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
             }
         }
 
@@ -235,7 +197,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
             display: none;
             justify-content: center;
@@ -251,16 +213,16 @@
         }
 
         .modal-content {
-            background: #111;
+            background: #ffffff;
             padding: 2.5rem;
             border-radius: 25px;
-            border: 1px solid rgba(255, 77, 0, 0.3);
+            border: 1px solid rgba(37, 99, 235, 0.1);
             text-align: center;
             max-width: 400px;
             width: 90%;
             transform: scale(0.8);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 0 40px rgba(255, 77, 0, 0.15);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
         }
 
         .modal-overlay.active .modal-content {
@@ -269,11 +231,11 @@
 
         .modal-content h2 {
             margin-top: 0;
-            color: #ff8c00;
+            color: #1d4ed8;
         }
 
         .apk-info {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(37, 99, 235, 0.05);
             padding: 1.5rem;
             border-radius: 15px;
             margin: 1.5rem 0;
@@ -282,13 +244,13 @@
 
         .apk-info p {
             margin: 0.5rem 0;
-            color: #ccc;
+            color: #4b5563;
             display: flex;
             justify-content: space-between;
         }
 
         .apk-info strong {
-            color: #fff;
+            color: #111827;
         }
 
         .close-btn {
@@ -297,11 +259,19 @@
             right: 1.5rem;
             background: none;
             border: none;
-            color: #888;
+            color: #9ca3af;
             font-size: 1.5rem;
             cursor: pointer;
             min-width: auto;
             padding: 0;
+            box-shadow: none;
+        }
+        
+        .close-btn:hover {
+            transform: none;
+            background: none;
+            color: #4b5563;
+            box-shadow: none;
         }
 
         /* Notifications */
@@ -316,12 +286,12 @@
         }
 
         .notification {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
-            border-left: 4px solid #ff4d00;
-            color: #fff;
+            background: #ffffff;
+            border-left: 4px solid #2563eb;
+            color: #1f2937;
             padding: 1rem 1.5rem;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -359,14 +329,14 @@
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            color: #b5b5b5;
+            color: #9ca3af;
             font-size: 0.95rem;
             flex-wrap: wrap;
             justify-content: center;
         }
 
         .site-credit span {
-            color: #8d8d8d;
+            color: #6b7280;
         }
 
         .creator-link {
@@ -374,7 +344,7 @@
             padding: 0;
             border: 0;
             background: transparent;
-            color: #d7d7d7;
+            color: #4b5563;
             text-decoration: none;
             font-weight: 700;
             letter-spacing: 0.01em;
@@ -383,8 +353,8 @@
         }
 
         .creator-link:hover {
-            color: #ff8c00;
-            text-shadow: 0 0 10px rgba(255, 140, 0, 0.45);
+            color: #2563eb;
+            text-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
         }
 
         @media (max-width: 600px) {
@@ -397,14 +367,6 @@
 
 <body>
     <canvas id="network-canvas"></canvas>
-
-    <!-- <div class="bg-places" aria-hidden="true">
-        <div class="bg-place place-1">rsgPhoeniX</div>
-        <div class="bg-place place-2">Lakshya</div>
-        <div class="bg-place place-3">rsgPhoeniX</div>
-        <div class="bg-place place-4">Lakshya</div>
-        <div class="bg-place place-5">rsgPhoeniX</div>
-    </div> -->
 
     <div class="page-shell">
         <div class="content">
@@ -453,17 +415,14 @@
     <div id="notifications" class="notifications-container"></div>
 
     <script>
-        // Setup wake up calls immediately when someone opens the page
         const backendUrl = 'https://owego-backend.onrender.com';
         const frontendUrl = 'https://owego-frontend.onrender.com';
 
         let backendReady = false;
         let frontendReady = false;
 
-        // Cache buster to ensure the request is actually sent
         const timestamp = new Date().getTime();
 
-        // This will hang if the server is asleep, and resolve when it wakes up
         fetch(`${backendUrl}/?ping=${timestamp}`, { mode: 'no-cors', cache: 'no-store' })
             .then(() => { backendReady = true; console.log("Backend connection established."); })
             .catch(err => { backendReady = true; console.log("Backend ping failed, but might be awake."); });
@@ -477,7 +436,6 @@
         const loader = document.getElementById('loader');
 
         btn.addEventListener('click', () => {
-            // Update UI
             btn.disabled = true;
             btn.classList.remove('pulse');
             loader.style.display = 'block';
@@ -490,7 +448,6 @@
                         window.location.href = frontendUrl;
                     }, 800);
                 } else {
-                    // Check again periodically in case promises are still pending
                     setTimeout(checkReadyAndRedirect, 1000);
                 }
             };
@@ -498,7 +455,6 @@
             checkReadyAndRedirect();
         });
 
-        // --- Try Our App Logic ---
         const tryAppBtn = document.getElementById('try-app-btn');
         const modal = document.getElementById('download-modal');
         const closeModal = document.getElementById('close-modal');
@@ -527,7 +483,6 @@
             modal.classList.remove('active');
         });
 
-        // Close modal on outside click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.classList.remove('active');
         });
@@ -539,9 +494,7 @@
 
             showNotification('Thanks for downloading! Your OweGo experience is about to get better.');
 
-            // Simulate download process
             setTimeout(() => {
-                // Set link to the local APK file in static_page folder
                 const dummyLink = document.createElement('a');
                 dummyLink.href = './OweGo.apk'; 
                 dummyLink.download = 'OweGo.apk';
@@ -549,19 +502,16 @@
                 dummyLink.click();
                 document.body.removeChild(dummyLink);
 
-                // Reset button state
                 confirmDownloadBtn.disabled = false;
                 downloadLoader.style.display = 'none';
                 downloadBtnText.innerText = 'Download APK';
                 
-                // Close modal after brief delay
                 setTimeout(() => {
                     modal.classList.remove('active');
                 }, 1000);
             }, 2500);
         });
 
-        // --- Tilt and Interactive Shadows ---
         const card = document.querySelector('.content');
         const title = document.querySelector('h1');
 
@@ -573,34 +523,30 @@
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
 
-            // Tilt calculation
-            const rotateX = (centerY - y) / 15;
-            const rotateY = (x - centerX) / 20;
+            const rotateX = (centerY - y) / 25;
+            const rotateY = (x - centerX) / 30;
 
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
 
-            // Deep text shadow that moves opposite to tilt
-            const moveX = (x - centerX) / 10;
-            const moveY = (y - centerY) / 10;
+            const moveX = (x - centerX) / 15;
+            const moveY = (y - centerY) / 15;
 
-            // "Upside" shadow effect - moving glow
             title.style.textShadow = `
-                ${-moveX}px ${-moveY}px 25px rgba(255, 77, 0, 0.4),
-                ${-moveX / 2}px ${-moveY / 2}px 10px rgba(255, 255, 255, 0.2)
+                ${-moveX}px ${-moveY}px 25px rgba(37, 99, 235, 0.2),
+                ${-moveX / 2}px ${-moveY / 2}px 10px rgba(0, 0, 0, 0.05)
             `;
         });
 
         card.addEventListener('mouseleave', () => {
             card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
             card.style.transition = 'transform 0.5s ease';
-            title.style.textShadow = '0 0 20px rgba(255, 77, 0, 0.3)';
+            title.style.textShadow = '0 0 20px rgba(37, 99, 235, 0.15)';
         });
 
         card.addEventListener('mouseenter', () => {
             card.style.transition = 'none';
         });
 
-        // --- Neural Network Animation Logic ---
         const canvas = document.getElementById('network-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -611,16 +557,14 @@
             height = canvas.height = window.innerHeight;
 
             particles = [];
-            // Calculate a good number of particles based on screen size
-            const numParticles = Math.floor((width * height) / 10000);
+            const numParticles = Math.floor((width * height) / 15000); // slightly fewer particles for cleaner look
 
-            // Generate particles
             for (let i = 0; i < numParticles; i++) {
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 1.2,
-                    vy: (Math.random() - 0.5) * 1.2,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
                     radius: Math.random() * 2 + 1
                 });
             }
@@ -628,38 +572,32 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            // Slightly clear screen to give trailing effect (optional, completely clear for sharp dots)
             ctx.clearRect(0, 0, width, height);
 
-            ctx.fillStyle = '#ff4d00';
+            ctx.fillStyle = '#60a5fa'; // Blue dots
 
             for (let i = 0; i < particles.length; i++) {
                 let p = particles[i];
 
-                // Move
                 p.x += p.vx;
                 p.y += p.vy;
 
-                // Subtly bounce off edges
                 if (p.x < -50 || p.x > width + 50) p.vx *= -1;
                 if (p.y < -50 || p.y > height + 50) p.vy *= -1;
 
-                // Draw dots
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Draw connecting lines
                 for (let j = i + 1; j < particles.length; j++) {
                     let p2 = particles[j];
                     let dx = p.x - p2.x;
                     let dy = p.y - p2.y;
                     let dist = Math.sqrt(dx * dx + dy * dy);
 
-                    // Line distance logic
                     if (dist < 120) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(255, 77, 0, ${1 - dist / 120})`;
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${1 - dist / 120})`; // Blue lines
                         ctx.lineWidth = 0.5;
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(p2.x, p2.y);
@@ -670,11 +608,8 @@
         }
 
         window.addEventListener('resize', init);
-
-        // Start animation
         init();
         animate();
     </script>
 </body>
-
 </html>

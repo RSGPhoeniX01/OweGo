@@ -154,9 +154,9 @@ function SignUp() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-    <main className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 px-4 py-6">
+    <main className="flex-1 flex items-center justify-center bg-gray-50 px-4 py-6">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">Sign Up</h2>
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-6">Sign Up</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="text"
@@ -167,7 +167,7 @@ function SignUp() {
             minLength={3}
             maxLength={30}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="email"
@@ -176,7 +176,7 @@ function SignUp() {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="password"
@@ -186,12 +186,12 @@ function SignUp() {
             onChange={handleChange}
             minLength={8}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg cursor-pointer transition-colors duration-200 disabled:opacity-60"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg cursor-pointer transition-colors duration-200 disabled:opacity-60"
           >
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>
@@ -231,7 +231,7 @@ function SignUp() {
       <div>
         <p className="text-center text-gray-600">
           Already have an account?{' '}Log in{' '}
-          <Link to="/login" className="text-purple-600 hover:underline">
+          <Link to="/login" className="text-blue-600 hover:underline">
              here.            
           </Link>
         </p>
