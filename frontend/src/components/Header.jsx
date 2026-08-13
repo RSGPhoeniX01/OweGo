@@ -4,12 +4,6 @@ import logo from '../assets/logo.png';
 import { showNotification } from '../notifications';
 import DownloadModal from './DownloadModal';
 
-const AndroidIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 cursor-pointer">
-        <path d="M17.523 15.3414C17.0509 15.3414 16.6633 14.9538 16.6633 14.4817C16.6633 14.0097 17.0509 13.6221 17.523 13.6221C17.995 13.6221 18.3826 14.0097 18.3826 14.4817C18.3826 14.9538 17.995 15.3414 17.523 15.3414ZM6.47702 15.3414C6.00497 15.3414 5.6174 14.9538 5.6174 14.4817C5.6174 14.0097 6.00497 13.6221 6.47702 13.6221C6.94906 13.6221 7.33663 14.0097 7.33663 14.4817C7.33663 14.9538 6.94906 15.3414 6.47702 15.3414ZM17.1517 7.23485L18.847 4.29845C18.966 4.09241 18.8953 3.82855 18.6893 3.70951C18.4833 3.59047 18.2194 3.66115 18.1004 3.86719L16.3881 6.83296C15.0975 6.24151 13.6293 5.9189 12.0001 5.9189C10.3708 5.9189 8.90263 6.24151 7.61203 6.83296L5.89973 3.86719C5.78069 3.66115 5.51684 3.59047 5.31079 3.70951C5.10475 3.82855 5.03407 4.09241 5.15311 4.29845L6.84841 7.23485C3.8966 8.7909 2.00012 11.8347 2.00012 15.3333V16.2736C2.00012 16.5188 2.19838 16.717 2.44358 16.717H21.5566C21.8018 16.717 22.0001 16.5188 22.0001 16.2736V15.3333C22.0001 11.8347 20.1036 8.7909 17.1517 7.23485Z" />
-    </svg>
-);
-
 const UserIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -19,6 +13,12 @@ const UserIcon = () => (
 const LogoutIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
         <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+    </svg>
+);
+
+const HomeIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
     </svg>
 );
 
@@ -47,6 +47,10 @@ export default function Header() {
         navigate('/login');
     };
 
+    const navigateHome = () => {
+        navigate('/dashboard');
+    }
+
     // Check if we're on a protected route (dashboard, profile, etc.)
     const isProtectedRoute = ['/dashboard', '/profile', '/groupdetails', '/creategroup'].includes(location.pathname);
     const isAuthRoute = ['/login', '/signup'].includes(location.pathname);
@@ -61,7 +65,33 @@ export default function Header() {
                     onClick={() => navigate('/dashboard')}
                 />
                 <div className="flex items-center space-x-3">
-                    {location.pathname === '/profile' ? (
+                    {location.pathname !== '/dashboard' && (
+                        <button
+                            onClick={navigateHome}
+                            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 transition-all border border-blue-100 shadow-sm cursor-pointer group"
+                        >
+                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform text-blue-600">
+                                <HomeIcon />
+                            </div>
+                            <span className="text-sm font-semibold pr-1 text-blue-600">
+                                Dashboard
+                            </span>
+                        </button>
+                    )}
+
+                    {location.pathname !== '/profile' && (
+                        <button
+                            onClick={() => navigate('/profile')}
+                            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200 shadow-sm cursor-pointer group"
+                        >
+                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform text-gray-600">
+                                <UserIcon />
+                            </div>
+                            <span className="text-sm font-semibold pr-1">Profile</span>
+                        </button>
+                    )}
+
+                    {location.pathname === '/profile' && (
                         <button
                             onClick={handleLogout}
                             disabled={!isLoggedIn}
@@ -71,16 +101,6 @@ export default function Header() {
                                 <LogoutIcon />
                             </div>
                             <span className="text-sm font-semibold pr-1">{!isLoggedIn ? 'Logging out...' : 'Logout'}</span>
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => navigate('/profile')}
-                            className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all border border-gray-200 shadow-sm cursor-pointer group"
-                        >
-                            <div className="bg-white p-1 rounded-full shadow-inner group-hover:scale-110 transition-transform text-gray-600">
-                                <UserIcon />
-                            </div>
-                            <span className="text-sm font-semibold pr-1">Profile</span>
                         </button>
                     )}
                 </div>

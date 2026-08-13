@@ -476,18 +476,6 @@ function GroupDetails() {
           </button>
           {sidebarOpen && (
             <>
-              <div className="p-4 mt-10">
-                <button
-                  onClick={() => {
-                    setSidebarOpen(false);
-                    navigate("/dashboard");
-                  }}
-                  className="w-full bg-blue-600 text-white text-sm md:text-base py-2 px-3 md:px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center cursor-pointer"
-                >
-                  Back to Dashboard
-                </button>
-              </div>
-
               <div className="p-4 pb-20">
                 <h2 className="text-lg font-semibold mb-4">Your Groups</h2>
                 <div className="space-y-2">

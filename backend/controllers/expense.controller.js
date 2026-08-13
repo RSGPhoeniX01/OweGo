@@ -1,7 +1,36 @@
 import Expense from '../models/expense.model.js';
 import Group from '../models/group.model.js';
 import SettleUp from '../models/settleup.model.js';
+import PersonalExpense from '../models/personalExpense.model.js';
 import { getIO } from '../socket.js';
+
+// Silently derive and insert a PersonalExpense entry for each user's share
+const mirrorToPersonalLedger = async (expense) => {
+  try {
+    const entries = [];
+    // For each split member, log their share as a personal 'spent' entry
+    if (expense.splits && expense.splits.length > 0) {
+      for (const split of expense.splits) {
+        if (!split.member || split.share <= 0) continue;
+        entries.push({
+          user: split.member,
+          source: 'group',
+          groupExpenseRef: expense._id,
+          type: 'spent',
+          amount: split.share,
+          category: expense.type,
+          description: expense.description
+        });
+      }
+    }
+    if (entries.length > 0) {
+      await PersonalExpense.insertMany(entries, { ordered: false });
+    }
+  } catch (err) {
+    // Silent — mirroring failure must never break the group expense flow
+    console.error('PersonalExpense mirror error:', err.message);
+  }
+};
 
 // Add a new expense
 export const addExpense = async (req, res) => {
@@ -69,6 +98,9 @@ export const addExpense = async (req, res) => {
       console.error('Socket emit error:', err);
     }
 
+    // Mirror each involved user's share to the personal ledger for the chart
+    await mirrorToPersonalLedger(expense);
+
     res.status(201).json({ success: true, message: 'Expense added', expense });
   } catch (error) {
     console.error('Add expense error:', error);
@@ -135,6 +167,10 @@ export const updateExpense = async (req, res) => {
       console.error('Socket emit error:', err);
     }
 
+    // Re-derive personal ledger entries: delete old ones then re-insert updated shares
+    await PersonalExpense.deleteMany({ groupExpenseRef: expense._id });
+    await mirrorToPersonalLedger(expense);
+
     res.status(200).json({ success: true, message: 'Expense updated', expense });
   } catch (error) {
     console.error('Update expense error:', error);
@@ -161,6 +197,9 @@ export const deleteExpense = async (req, res) => {
     } catch (err) {
       console.error('Socket emit error:', err);
     }
+
+    // Remove derived personal ledger entries linked to this expense
+    await PersonalExpense.deleteMany({ groupExpenseRef: expenseId });
 
     res.status(200).json({ success: true, message: 'Expense deleted' });
   } catch (error) {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Header from "./Header";
 import { showNotification } from "../notifications";
+import { Pencil } from "lucide-react";
 
 function Profile() {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ function Profile() {
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [totalExpenses, setTotalExpenses] = useState(0);
   const [settlementCount, setSettlementCount] = useState(0);
 
   useEffect(() => {
@@ -31,18 +31,12 @@ function Profile() {
     Promise.all([
       api.get("/user/profile"),
       api.get("/group/allgroups"),
-      api.get("/expense/allexpenses"),
       api.get("/settleup/settled-groups"),
     ])
-      .then(([profileRes, groupsRes, expensesRes, settledRes]) => {
+      .then(([profileRes, groupsRes, settledRes]) => {
         setUser(profileRes.data.data);
         setGroupCount(groupsRes.data.groups.length);
 
-        // Use the same logic as UserExpenses.jsx for net balance
-        const totalToPay = expensesRes.data.totalToPay || 0;
-        const totalToReceive = expensesRes.data.totalToReceive || 0;
-        const netExpense = totalToReceive - totalToPay;
-        setTotalExpenses(netExpense);
 
         // Number of settled groups
         setSettlementCount(settledRes.data.settledGroups.length);
@@ -122,9 +116,10 @@ function Profile() {
               {!isEditing ? (
                 <button
                   onClick={handleEdit}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                  title="Edit Profile"
                 >
-                  Edit Profile
+                  <Pencil size={20} />
                 </button>
               ) : (
                 <>
@@ -270,18 +265,6 @@ function Profile() {
                     {groupCount}
                   </p>
                   <p className="text-sm text-blue-600">Active groups</p>
-                </div>
-                <div
-                  className="bg-green-50 p-4 rounded-lg cursor-pointer hover:bg-green-100"
-                  onClick={() => navigate("/dashboard?view=expenses")}
-                >
-                  <h3 className="font-semibold text-green-800">
-                    Net Expense
-                  </h3>
-                  <p className={`text-2xl font-bold ${totalExpenses >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ₹{totalExpenses.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-green-600">(Your net expense)</p>
                 </div>
                 <div
                   className="bg-purple-50 p-4 rounded-lg cursor-pointer hover:bg-purple-100"
