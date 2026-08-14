@@ -41,15 +41,15 @@ function Home() {
   };
 
   const fadeUp = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }
   };
 
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.2 }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
@@ -60,9 +60,9 @@ function Home() {
       {/* Hero Section */}
       <section id="home" className="scroll-mt-24 min-h-screen flex flex-col items-center justify-center text-center max-w-5xl mx-auto px-4 py-16 relative">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="z-10"
         >
           <h1 className="text-5xl sm:text-7xl font-extrabold mb-6 tracking-tight text-gray-900">
@@ -141,9 +141,9 @@ function Home() {
       <section id="security" className="py-24 bg-blue-600 text-white overflow-hidden relative">
         <div className="max-w-6xl mx-auto px-4 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.4 }}
             viewport={{ once: false, amount: 0.3 }}
           >
             <h2 className="text-4xl font-bold mb-6">Bank-Grade Security & Data Integrity</h2>
@@ -164,9 +164,9 @@ function Home() {
             </ul>
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
             viewport={{ once: false, amount: 0.3 }}
             className="bg-white/10 p-8 rounded-3xl backdrop-blur-md border border-white/20 shadow-2xl"
           >
@@ -220,7 +220,7 @@ function Home() {
                 key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.2 }}
+                transition={{ duration: 0.3, delay: i * 0.1 }}
                 viewport={{ once: false, amount: 0.3 }}
                 className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 w-full md:w-1/3 text-center z-10"
               >

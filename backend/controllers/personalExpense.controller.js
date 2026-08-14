@@ -88,7 +88,7 @@ export const getChartData = async (req, res) => {
     // Reshape into [{ label, spent, lent }] for recharts
     raw.forEach(({ _id, total }) => {
       if (!map[_id.label]) map[_id.label] = { label: _id.label, spent: 0, lent: 0 };
-      map[_id.label][_id.type] += parseFloat(total.toFixed(2));
+      map[_id.label][_id.type] += parseFloat((total / 100).toFixed(2));
     });
 
     const chartData = Object.values(map).sort((a, b) => a.label.localeCompare(b.label));
